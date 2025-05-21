@@ -1,0 +1,93 @@
+
+        <html>
+        <head>
+        <title>Brick Wall - c:\prueba.txt</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f9f9f9;
+                padding: 20px;
+            }
+            h1 {
+                text-align: center;
+                font-style: italic;
+                color: #2c3e50;
+                font-size: 26px;
+                margin-bottom: 25px;
+            }
+            .estadisticas {
+                background: #ffffff;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                margin-bottom: 30px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+            .estadisticas-item {
+                background: #f0f8ff;
+                border: 1px solid #cce7ff;
+                border-radius: 8px;
+                padding: 15px;
+                min-width: 130px;
+                text-align: center;
+            }
+            .estadisticas-item b {
+                font-size: 14px;
+                display: block;
+                color: #34495e;
+                margin-bottom: 6px;
+            }
+            .estadisticas-item span {
+                font-size: 20px;
+                color: #2c3e50;
+                font-weight: bold;
+            }
+            .token {
+                display: inline-flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin: 3px;
+                padding: 6px;
+                border-radius: 6px;
+                text-align: center;
+                box-shadow: 1px 1px 2px rgba(0,0,0,0.15);
+                max-width: 300px;
+                min-width: 120px;
+                min-height: 50px;
+                vertical-align: top;
+                white-space: normal;
+                overflow-wrap: break-word;
+                font-size: 13px;
+            }
+            .token small {
+                font-size: 10px;
+                margin-top: 2px;
+                color: #333;
+            }
+            .sin-familia small {
+                color: green !important;
+                font-style: italic;
+            }
+            .error small {
+                color: red !important;
+                font-style: italic;
+            }
+        </style>
+        </head>
+        <body>
+        <h1>Brick Wall – c:\prueba.txt</h1>
+
+        <div class="estadisticas">
+            <div class="estadisticas-item"><b>Total tokens</b><span>15</span></div>
+            <div class="estadisticas-item"><b>Reserved words</b><span>0</span></div>
+            <div class="estadisticas-item"><b>Identifiers</b><span>3</span></div>
+            <div class="estadisticas-item"><b>Literals</b><span>3</span></div>
+            <div class="estadisticas-item"><b>Errors</b><span>0</span></div>
+            <div class="estadisticas-item"><b>Line comments</b><span>0</span></div>
+            <div class="estadisticas-item"><b>Block comments</b><span>0</span></div>
+        </div>
+        <div class='token' style='background-color:moccasin;'>Spider<br><small>Tipo string</small></div><div class='token sin-familia' style='background-color:mediumspringgreen;'>nombre<br><small>Id</small></div><div class='token' style='background-color:lightgray;'>=<br><small>Asignación</small></div><div class='token' style='background-color:lightcyan;'>"Steve"<br><small>Literal string</small></div><div class='token' style='background-color:lightcoral;'>;<br><small>Terminador</small></div><div class='token' style='background-color:moccasin;'>Spider<br><small>Tipo string</small></div><div class='token sin-familia' style='background-color:mediumspringgreen;'>saludo<br><small>Id</small></div><div class='token' style='background-color:lightgray;'>=<br><small>Asignación</small></div><div class='token' style='background-color:lightcyan;'>"Hola mundo"<br><small>Literal string</small></div><div class='token' style='background-color:lightcoral;'>;<br><small>Terminador</small></div><div class='token' style='background-color:moccasin;'>Spider<br><small>Tipo string</small></div><div class='token sin-familia' style='background-color:mediumspringgreen;'>texto<br><small>Id</small></div><div class='token' style='background-color:lightgray;'>=<br><small>Asignación</small></div><div class='token' style='background-color:lightcyan;'>""<br><small>Literal string</small></div><div class='token' style='background-color:lightcoral;'>;<br><small>Terminador</small></div></body></html>
