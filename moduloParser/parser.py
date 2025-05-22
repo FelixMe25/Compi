@@ -11,7 +11,7 @@
 
 from moduloScanner.scanner import Scanner
 from moduloScanner.familias import FAMILIAS_TOKEN
-from tabla_simbolos import TablaSimbolos
+from moduloParser.tabla_simbolos import TablaSimbolos
 
 from moduloParser.comentarios import procesar_comentarios
 from moduloParser.constantes import seccion_constante

@@ -10,8 +10,8 @@
 # resumidas del análisis léxico realizado.
 # ================================================================
 
-from modulosScanner.scanner import TIPOS_TOKEN
-from modulosScanner.familias import FAMILIAS_TOKEN
+from moduloScanner.scanner import TIPOS_TOKEN
+from moduloScanner.familias import FAMILIAS_TOKEN
 
 def generar_muro(tokens, nombre_archivo="archivo", resumen=None):
     if resumen is None:
