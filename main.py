@@ -3,9 +3,9 @@
 # Estudiantes: María Félix Méndez Abarca - Mariana Fernández Martínez
 # ================================================================
 
-from modulosScanner.scanner import Scanner
-from modulosScanner.muro import generar_muro
-from modulosScanner.parser import Parser
+from moduloScanner.scanner import Scanner
+from moduloScanner.muro import generar_muro
+from moduloParser.parser import Parser 
 
 
 def main():

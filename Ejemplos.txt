@@ -1,0 +1,698 @@
+// ============================================================
+//        1. ESTRUCTURA DEL TÍTULO DEL PROGRAMA (WorldName)
+// ============================================================
+// → ACEPTA
+WorldName MundoAventura:
+
+// → RECHAZA
+worldname MundoAventura:        → Mal uso de mayúsculas/minúsculas (se detecta como IDENTIFICADOR)
+WorldName:                      → Falta identificador después de "WorldName"
+
+
+// ============================================================
+//              14. TIPO DE DATO BOOLEANO (On / Off)
+//                  20. LITERAL BOOLEANA
+// ============================================================
+// ACEPTA
+On                               → LITERAL_BOOL
+Off                              → LITERAL_BOOL
+
+// RECHAZA
+on                               → Incorrecto → IDENTIFICADOR
+OFF                              → Incorrecto → IDENTIFICADOR
+Onn                              → Incorrecto → IDENTIFICADOR
+
+
+// ============================================================
+//               DETECCIÓN DE PALABRAS RESERVADAS
+// ============================================================
+// ACEPTA
+Stack                            → PALABRA_RESERVADA
+Torch                            → PALABRA_RESERVADA
+Ghast                            → PALABRA_RESERVADA
+
+// RECHAZA
+stackk                           → Error de escritura → IDENTIFICADOR
+
+
+// ============================================================
+//            DETECCIÓN DE IDENTIFICADORES GENERALES
+// ============================================================
+// ACEPTA
+miVariable                       → IDENTIFICADOR
+counter                          → IDENTIFICADOR
+
+//  RECHAZA
+123variable                      → Empieza con número (no válido)
+"cadena"                         → Empieza con comillas
+@nombre                          → Empieza con símbolo '@'
+
+
+
+// ============================================================
+//               2. SECCIÓN CONSTANTES (Bedrock)
+// ============================================================
+// ACEPTA
+Bedrock Stack Limite_bloques = 126
+
+// RECHAZA
+bedrock Stack limite = 10         → Mal uso de mayúsculas → IDENTIFICADOR
+Bedrock stack limite              → Falta '='
+
+
+// ============================================================
+//              3. SECCIÓN TIPOS (ResourcePack)
+// ============================================================
+// ACEPTA
+ResourcePack: MobType: Spider
+
+// RECHAZA
+ResourcePack MobType Spider       → Falta uso de ':' para definir el tipo
+
+
+// ============================================================
+//              4. SECCIÓN VARIABLES (Inventory)
+// ============================================================
+//  ACEPTA
+Inventory Stack bloques, herramientas
+
+//  RECHAZA
+Inventory bloques herramientas    → Falta tipo declarado antes de variables
+
+
+// ============================================================
+//              5. SECCIÓN PROTOTIPOS (Recipe)
+// ============================================================
+// ACEPTA
+Recipe construirPuente(Stack largo, Stack ancho)
+
+// RECHAZA
+Recipe construirPuente Stack largo, Stack ancho   → Falta paréntesis
+
+
+// ============================================================
+//           6. SECCIÓN DE RUTINAS (CraftingTable)
+// ============================================================
+// ACEPTA
+CraftingTable construirPuente(Stack largo, Stack ancho) { ... }
+
+// RECHAZA
+CraftingTable construirPuente Stack largo Stack ancho { ... }   → Falta paréntesis
+
+
+// ============================================================
+//        7. PUNTO DE ENTRADA AL PROGRAMA (SpawnPoint)
+// ============================================================
+// ACEPTA
+SpawnPoint { 
+    // instrucciones
+}
+
+//  RECHAZA
+SpawnPoint construir()           → Falta llave de apertura '{'
+
+
+// ============================================================
+//          8. SISTEMA ASIGNACIÓN DE CONSTANTES (Obsidian)
+// ============================================================
+
+
+
+
+// ============================================================
+//          9. SISTEMA ASIGNACIÓN DE TIPOS (Anvil)
+// ============================================================
+
+
+
+
+// ============================================================
+//           10. SISTEMA ASIGNACIÓN DE VARIABLES 
+// ============================================================
+
+
+
+
+
+// ============================================================
+//            Tipos de datos y Literales de cada tipo
+// ============================================================
+// ============================================================
+//                   11. ENTEROS (STACK)
+//                   24. LITERAL DE ENTEROS
+// ============================================================
+// ACEPTA
+Stack entero1 = 16
+Stack entero2 = -16
+
+// RECHAZA
+Stack errorint1 = 323a         → letras y numeros
+Stack errorint2 = 5.;          → punto sin decimal
+Stack errorint3 = .5;          → sin dígito antes del punto
+Stack errorint4 = 12,34;       → coma no permitida
+Stack errorint5 = 3.1.4;       → múltiples puntos
+
+
+// ============================================================
+//                   12. CARACTERES (RUNE)
+//                   25. LITERAL DE CARACTERES 
+// ============================================================
+// ACEPTA
+Rune ejem1 = 'A'
+Rune ejem2 = ' '
+
+// RECHAZA
+Rune error1 = ''
+Rune error2 = 'ab
+Rune error3 = 'A
+Rune error3 = A'
+
+// ============================================================
+//                   13. STRINGS (SPIDER)
+//                   26. LITERAL DE STRINGS
+// ============================================================
+// ACEPTA
+Spider mensaje = "Hola mundo";       
+Spider numeros = "123";            
+Spider msjeNum = "Hola1234";        
+Spider vacioEnter = " ";             
+Spider vacioTotal = "";     
+
+// RECHAZA
+Spider sinCR = "Hola;               → sin comilla de cierre
+Spider sinCL = Hola";               → sin comilla de apertura
+
+
+
+// ============================================================
+//                     17. FLOTANTES (GHAST)
+//                     23. LITERAL DE FLOTANTES
+// ============================================================
+// ACEPTA
+Ghast float1 = 3.14;
+Ghast float2 = -0.001;
+Ghast float3 = 5.0;
+
+// RECHAZA
+Ghast errorfloat1 = 5.;          → punto sin decimal
+Ghast errorfloat2 = .5;          → sin dígito antes del punto
+Ghast errorfloat3 = 12,34;       → coma no permitida
+Ghast errorfloat4 = 3.1.4;       → múltiples puntos
+Ghast errorfloat5 = 3.1aa;       → letras y numeros
+
+
+// ============================================================
+//                    18. ARREGLOS (Shelf)
+//                    27. LITERAL DE AAREGLOS
+// ============================================================
+// ACEPTA
+Shelf vacia = [];
+Shelf letras = ["a", "b", "c"];
+Shelf mixto = [1, "dos", 3];
+
+// RECHAZA
+    
+Shelf error2 = [1; 2; 3];       → depende de validación del separador
+Shelf error3 = [1, "dos, 'a'];  → falta de comillas en algun dato 
+Shelf error4 = [1, "dos", 'a];  → falta de comillas en algun dato 
+
+
+// ============================================================
+//                     16. ARCHIVOS (BOOK)
+//                     22. LITERAL DE ARCHIVOS
+// ============================================================
+// ACEPTA
+Book log1 = {/ "bitacora.txt", 'L' /};
+Book log2 = {/ "registro.txt", 'C' /};
+Book log3 = {/ "archivo.txt", 'X' /};
+
+// RECHAZA
+Book error1 = {/ archivo.txt, 'L' /};       → sin comillas en el nombre
+Book error2 = {/ "archivo.txt" 'L' /};      → sin coma
+Book error3 = {/ "archivo.txt", L /};       → sin comillas en carácter
+Book error4 = {/ "archivo.txt", 'LL' /};    → más de un carácter
+Book error5 = {/ "archivo.txt", 'L' };      → sin cierre /}
+
+
+// ============================================================
+//                      15. CONJUNTOS (CHEST)
+//                      21. LITERAL DE CONJUNTOS
+// ============================================================
+// ACEPTA
+Chest c1 = {: 1, 2, 3 :};
+Chest c2 = {: "espada", "escudo", "pico" :};
+Chest c3 = {: :};                 // conjunto vacío
+Chest c4 = {: 'x', "y", 100 :};
+
+// RECHAZA
+Chest error1= {: 1, 2, 3 };                       → Sin : de final
+Chest error2 = {: 1, 2, 3 :;                      → Sin } de cierre 
+Chest conjunto2 = {: 'a', "VACA", 'c',1 :};       → alguna de las palabras esten mal formadas como que falte un "  o un '
+
+
+// ============================================================
+//                        19.  REGISTROS
+//                        28. LITERAL DE REGISTROS
+// ============================================================
+// ACEPTA
+Entity e1 = {nombre: "Steve", vida: 20};
+Entity e2 = {tipo: "granjero", activo: On};
+Entity e3 = {clave: "valor", extra: 99, activo: Off};
+Entity e4 = {a: 'x', b: 3.14, c: -5};
+
+// RECHAZA
+Entity error1 = {nombre: "Alex"
+Entity error2 = {};
+Entity error3 = {nombre: };
+Entity error4 = {: "Steve"};
+Entity error5 = {nombre "Steve"};
+Entity error6 = {nombre: ~Steve~};
+
+
+// ============================================================
+//              29.  SISTEMA DE ACCESO A ARREGLOS
+// ============================================================
+// ACEPTA
+Stack valor1 = mapa[1];
+Stack valor2 = mapa[0][2];
+Stack valor3 = inventario[5][3][2];
+Stack valor4 = mapa_variable[10];
+
+//RECHAZA
+Stack fail1 = mapa[];                 → índice vacío
+Stack fail2 = mapa[abc];              → índice no numérico
+Stack fail3 = mapa[1][2;              → cierre de corchete faltante
+Stack fail4 = mapa[3;4];              → índice con caracter inválido
+Stack fail5 = mapa[2                  → corchete sin cerrar
+
+
+// ============================================================
+//               30. SISTEMA DE ACCESO A STRINGS
+// ============================================================
+// ACEPTA
+Stack letra = mensaje[3];                  
+Stack simbolo = cartel[0];                 
+
+//RECHAZA
+Stack error5 = palabra[2;];             → falta cierre de corchete
+Stack error6 = mensaje[a];              → índice no numérico
+
+
+// ============================================================
+//            31.  SISTEMA DE ACCESO A REGISTROS
+// ============================================================
+// ACEPTA
+Stack dato = jugador@vida;                 
+Stack nombre = entidad@nombre;             
+
+//RECHAZA
+Stack error7 = @vida;                      → falta objeto antes de @
+Stack error8 = mob@;                       → campo vacío después de @
+Stack error9 = jugador@vida@extra;         → válido sintácticamente (pero depende de análisis semántico)
+
+
+
+// ============================================================
+//  32. ASIGNACION Y FAMILIA
+//  33. OPERACIONES SOBRE ENTEROS     
+// ============================================================
+// ACEPTA
+Stack a = 5;
+Stack b += 1;
+Stack c -= 3;
+Stack d *= 2;
+Stack e /= 4;
+Stack f %= 2;
+Stack suma = 4 + 3;
+Stack resta = 10 - 2;
+Stack producto = 2 * 5;
+Stack division = 9 // 2;
+Stack modulo = 7 % 3;
+Stack avanzar += 2;
+Stack retroceder -= 1;
+
+// RECHAZA
+Stack h =;                 → falta valor a asignar
+Stack mal1 = 3 ++ 2;
+Stack mal2 = 4 ** 5;
+Stack mal3 = 9 %% 3;
+Stack mal4 = 8 /& 2;
+
+
+
+// ============================================================
+//                    34. INCREMENTO Y DECREMENTO    
+// ============================================================
+// ACEPTA
+bloques soulsand;
+picos magma;
+
+// RECHAZA
+bloques soulsandd;   → No se reconoce como operador, se interpreta como identificador
+picos magmaa;
+
+
+// ============================================================
+//          35. OPERACIONES SOBRE CARACTERES         
+// ============================================================
+// ACEPTA
+isEngraved('A')
+isInscribed('7')
+etchUp('c')
+etchDown('D')
+
+// RECHAZA
+isEngravedA')         →  (falta paréntesis)
+isInscribed("7")      →  (comillas incorrectas)
+etchUp('')            →  (carácter vacío)
+etchDown('ab')        → (más de un carácter)
+etchUp('c")           → ERROR_403 (falta comilla de cierre)
+etchDown('d'          → ERROR_404 (falta paréntesis de cierre)
+
+
+
+// ============================================================
+//             36. OPERACIONES LOGICOS    
+// ============================================================
+// ACEPTA
+Torch combinacion1 = On and Off;
+Torch combinacion2 = On or Off;
+Torch negacion = not Off;
+Torch exclusivo = On xor On;
+
+// RECHAZA
+Torch combinacion = On nand Off;       → 'nand' no es operador válido
+Torch negacion = onn not Off;          → 'onn' no es un booleano
+Torch exclusivo = xor On On;           → sintaxis incorrecta
+Torch fallo = On andor Off;            → operador mal formado
+
+
+// ============================================================
+//             37. OPERACIONES SOBRE STRINGS  
+// ============================================================
+// ACEPTA
+Spider nombre = bind("Steve", "Smith") ;             
+Stack longitud = #nombre ;                           
+Spider parcial = nombre from ## 5 ;                  
+Spider recorte = nombre except ## 5 ;                
+Torch encontrado = seek("e", nombre) ;               
+
+// RECHAZA
+Spider mal1 = nombre from # 5 ;                     
+Spider mal2 = nombre except# ;                      
+Spider mal3 = seeke("e", nombre) ;                  
+
+
+
+// ============================================================
+//         38.  OPERADORES DE CONJUNTOS SOLICITADOS
+// ============================================================
+// ACEPTA
+vocales add 'u';                              → agregar un elemento
+vocales drop 'a';                             → eliminar un elemento
+Chest comunes = feed(a, b);                   → intersección de conjuntos
+Torch pertenece = map('e', vocales);          → verificar pertenencia
+Chest vacio = void;                           → conjunto vacío
+Torch estaVacio = (vacio is void);            → verificación de vacío
+kill herramientas;                            → eliminar todo
+
+// RECHAZA
+vocales add u;                                → falta comillas simples
+vocales dropp 'a';                            → palabra mal escrita
+Chest comunes = feed a, b;                    → falta paréntesis
+Torch pertenece = map 'e', vocales;           → falta paréntesis
+Chest vacio = voiid;                          → palabra mal escrita
+kill;                                         → falta el identificador del conjunto
+add vocales, 'u';                             → orden incorrecto
+void herramientas;                            → mal uso de void
+
+
+// ============================================================
+//         29. OPERACIONES DE ARCHIVOS SOLICITADOS
+// ============================================================
+// ACEPTA
+unlock libro;
+lock libro;
+craft archivoNuevo;
+linea = gather mi archivo; 
+forge libro with "Bienvenido al mundo Minecraft";   
+expand archivo1, archivo2 into archivoTotal;
+
+// RECHAZA
+unlockk libro;                             → operador mal escrito
+lock "libro";                              → libro con comillas
+gather libro contenido;                    → falta 'into'
+forge libro "mensaje";                     → falta 'with'
+expand archivo1 archivo2 archivo3;         → falta 'into'
+
+
+// ============================================================
+//          40. OPERADORES DE NUMEROS FLOTANTES
+// ============================================================
+// ACEPTA
+Ghast total = 3.5 :+ 2.0;                 → suma flotante
+Ghast resta = 5.0 :- 1.5;                 → resta flotante
+Ghast producto = 2.0 :* 4.0;              → multiplicación flotante
+Ghast modulo = 7.5 :% 2.0;                → módulo flotante
+Ghast division = 9.0 :// 3.0;             → división flotante
+
+// RECHAZA
+Ghast suma = 3.5 + 2.0;                   → operador flotante debe usar ":+" no "+"
+Ghast resta = 5.0 :- ;                    → falta un operando
+Ghast multi = :* 4.0;                     → falta operando izquierdo
+Ghast div = 9.0 :// ;                     → falta operando derecho
+Ghast modulo = 7.5 :%% 2.0;               → operador inválido ":%%"
+Ghast mal = 2.5 :+3.5;                    → falta espacio entre operador y segundo operando
+
+
+// ============================================================
+//         41. OPERADORES DE COMPARACION SOLICITADAS
+// ============================================================
+// ACEPTA
+Torch menor = 3 < 5;
+Torch mayor = 8 > 2;
+Torch menorIgual = 6 <= 6;
+Torch mayorIgual = 7 >= 3;
+Torch igual = nombre is "SteveSmith";
+Torch distinto = nombre isNot "Alex";
+
+// RECHAZA
+Torch menor = 3 << 5;                     → operador inválido
+Torch comparador = nombre isNotAlex;      → falta espacio entre isNot y valor
+Torch comparador2 = nombre is Not;        → Not no es válido
+Torch comparador3 = nombre isNott "Alex"; → mal escrito
+
+
+// ============================================================
+//         42. MANEJO DE BLOQUES DE MAS DE UNA INSTRUCCION
+// ============================================================
+// ACEPTA
+PolloCrudo
+   a = 2;
+   b = a + 3;
+PolloAsado
+
+// RECHAZA
+PolloCrudo
+   a = 2;
+   b = a + 3;  
+
+
+// ============================================================
+//                    43.  WHILE
+// ============================================================
+// ACEPTA
+repeater x < 10 craft x = x + 1;
+
+// RECHAZA
+repeater x < 10 x = x + 1;     → Falta 'craft'
+repeater craft x = x + 1;      → Falta condición
+
+
+// ============================================================
+//                 44.  IF-THEN-ELSE
+// ============================================================
+// ACEPTA
+target score > 10 craft hit ganar(); miss perder();
+
+// RECHAZA
+target score > 10 hit ganar();      → Falta 'craft'
+target craft hit ganar();           → Falta condición
+
+
+// ============================================================
+//                     45. SWITCH
+// ============================================================
+jukebox a + b craft 
+pollo crudo 
+
+pollo asado 
+
+
+// ============================================================
+//                 46.   Repeaty until
+// ============================================================
+// ACEPTA
+spawner
+   contador = contador + 1;
+exhausted contador > 10;
+
+// RECHAZA
+spawner
+   contador++;       → Falta 'exhausted'
+
+
+// ============================================================
+//                    47.  FOR
+// ============================================================
+// ACEPTA
+walk i set 0 to 10 step 1 craft hacerAlgo();
+
+// RECHAZA
+walk i 0 to 10 craft hacer();     → Falta 'set'
+walk i set to 10 craft hacer();   → Falta expresión inicial
+
+
+// ============================================================
+//           48. WITH
+// ============================================================
+// ACEPTA
+wither registroUsuario craft mostrar(registroUsuario.nombre);
+
+// RECHAZA
+wither craft mostrar();           → Falta referencia
+wither registroUsuario mostrar(); → Falta 'craft'
+
+
+// ============================================================
+//        49.   BREAK
+// ============================================================
+// ACEPTA
+creeper;
+
+// RECHAZA
+creeper sinPuntoYComa           → Falta ';'
+creeper ahora();                → No lleva parámetros
+
+
+// ============================================================
+//         50. CONTINUE
+// ============================================================
+// ACEPTA
+enderperl;
+
+// RECHAZA
+enderperl salto;                → No lleva argumentos
+
+
+// ============================================================
+//       51.   HALT
+// ============================================================
+// ACEPTA
+ragequit;
+
+// RECHAZA
+ragequit();                     → No lleva paréntesis
+
+
+// ============================================================
+//         52. ENCABEZADO DE FUNCIONES (SPELL)
+// ============================================================
+// ACEPTA
+Spell sumar(Stack :: a, b) -> Stack
+
+// RECHAZA
+Spell sumar(Stack :: a, b) Stack           → falta '->'
+Spell sumar(Stack :: a, b) ->              → falta tipo de retorno
+Spell sumar(Stack : a, b) -> Stack         → uso incorrecto de '::'
+Spell (Stack :: a, b) -> Stack             → falta identificador del Spell
+Spell sumar Stack :: a, b -> Stack         → falta paréntesis en parámetros
+
+
+// ============================================================
+//         53.  ENCABEZADO DE PROCEDIMIENTOS
+// ============================================================
+// ACEPTA
+Ritual activarAlarma(Stack :: nivel)
+
+// RECHAZA
+Ritual activarAlarma Stack :: nivel)       → falta paréntesis de apertura
+Ritual activarAlarma(Stack :: )            → falta nombre del parámetro
+Ritual (Stack :: nivel)                    → falta identificador del Ritual
+Ritual activarAlarma(Stack : nivel)        → uso incorrecto de '::'
+Ritual activarAlarma Stack :: nivel        → falta paréntesis en parámetros
+
+
+// ============================================================
+//          54. MANEJO DE PARAMETROS FORMALES
+// ============================================================
+
+// ============================================================
+//          55. MANEJO DE PARAMETROS REALES
+// ============================================================
+
+// ============================================================
+//        56.  RETURN
+// ============================================================
+// ACEPTA
+respawn resultado;
+respawn total;
+
+// RECHAZA
+respawn;                                → falta el valor de retorno
+respawn 5 10;                           → demasiados argumentos
+respan resultado;                       → palabra mal escrita
+
+// ==============================
+// 57. Operación de size of (chunk)
+// ==============================
+// ACEPTA
+Stack tam = chunk Shelf;
+Stack bytes = chunk "archivo.txt";
+Stack largo = chunk tipoEntero;
+
+// RECHAZA
+Stack tam = chunk;                   → falta expresión o tipo
+Stack tam = chunk ();                → paréntesis vacío no permitido
+Stack tam = chunk 1+2;               → expresión inválida dentro de chunk
+Stack tam = chunk 'a';               → tipo no válido
+
+
+
+// ============================================================
+//        58. SITEMA DE COHERCION DE TIPOS
+// ============================================================
+
+
+// ============================================================
+//        59. MANEJO DE ENTRADA  ESTANDAR 
+// ============================================================
+
+
+// ============================================================
+//        60. MANEJO DE SALIDA ESTANDAR 
+// ============================================================
+
+// ============================================================
+//        61. TERMINADOR O SEPRADOR DE INSTRUCCIONES 
+//        INSTRUCCION NULA
+// ============================================================
+
+
+// ============================================================
+//        62. TODO PROGRAMA TERMINA CON UN (worldSave)
+// ============================================================
+// ACEPTA
+worldSave
+
+//  RECHAZA
+worldSave();                     → No debe tener paréntesis ni punto y coma
+
+
+// ============================================================
+//        63. COMENTARIO DE BLOQUE
+// ============================================================
+
+// ============================================================
+//        64. COMENTARIO DE LINEA 
+// ============================================================

@@ -1,0 +1,4 @@
+WorldName HelloWorld: 
+SpawnPoint                            
+$$ punto de entrada del programa 
+dropperSpider(“Hello, World!”); 
