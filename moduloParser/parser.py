@@ -17,11 +17,11 @@ from moduloParser.comentarios import procesar_comentarios
 from moduloParser.constantes import seccion_constante
 from moduloParser.entrada_salida import procesar_entrada_estandar, procesar_salida_estandar
 from moduloParser.prototipos_rutinas import procesar_funcion_o_procedimiento, seccion_prototipo
+from moduloParser.tipos import seccion_tipos
 
 from moduloParser.operaciones import (
     procesar_entity_en_inventory,
     _procesar_incremento_decremento,
-    _validar_operacion_booleana,
     procesar_asignacion_compuesta,
     _procesar_operaciones_enteros,
     procesar_operacion_rune,
@@ -58,8 +58,7 @@ from moduloParser.variables import (
     procesar_dato_book,
     procesar_dato_ghast,
     procesar_dato_entity,
-    procesar_arreglo,
-    _procesar_tipo_dato
+    procesar_arreglo
 )
 
 
@@ -310,14 +309,14 @@ class Parser:
                 procesar_salida_estandar(self)
 
             elif tipo == 'COMENTARIO' and valor == 'Inventory':
-                self.seccion_tipos(tipo, valor)
+                seccion_tipos(self, tipo, valor)
 
             # --- Secciones del programa ---
             elif tipo == 'SECCION_CONSTANTES' and valor == 'Bedrock':
                 seccion_constante(self, tipo, valor)
 
             elif tipo == 'SECCION_TIPOS' and valor == 'ResourcePack':
-                self.seccion_tipos(tipo, valor)
+                seccion_tipos(self, tipo, valor)
 
             elif tipo == 'SECCION_VARIABLES' and valor == 'Inventory':
                 seccion_variables(self, tipo, valor)
@@ -332,6 +331,7 @@ class Parser:
             # --- Tipos de datos (literales y declaraciones) ---
             elif tipo == 'TIPO_ENTERO' and valor == 'Stack':
                 procesar_dato_stack(self)
+                _procesar_operaciones_enteros(self)
 
             elif tipo == 'TIPO_CARACTER' and valor == 'Rune':
                 procesar_dato_rune(self)

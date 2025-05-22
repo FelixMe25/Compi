@@ -1,4 +1,3 @@
-
 #----------------------------------------------------------------------------
 #                MANEJO DE BLOQUES DE MAS DE UNA INSTRUCCION
 #----------------------------------------------------------------------------
@@ -18,7 +17,7 @@ def manejo_bloque(parser, tipo, valor):
 
             if tipo_actual == "MAS_DE_UNA_INSTRUCCION" and valor_actual == "PolloCrudo":
                 print("----- Bloque anidado encontrado dentro de otro bloque (Pollo crudo).")
-                parser.manejo_bloque(tipo_actual, valor_actual)
+                manejo_bloque(parser, tipo_actual, valor_actual)
                 continue
             parser.parse_instruccion_actual()
 
@@ -143,7 +142,7 @@ def procesar_target(parser):
                 parser.avanzar()
                 tipo, inicio = parser.token_actual_tipo_valor()
                 if tipo == "MAS_DE_UNA_INSTRUCCION" and inicio == "PolloCrudo":
-                    parser.manejo_bloque(tipo, inicio)
+                    manejo_bloque(parser, tipo, inicio)
                 else:
                     print("Error: Se esperaba un bloque PolloCrudo después de 'hit'")
                     print(f"-----------------------------------------------------------------------")
@@ -154,7 +153,7 @@ def procesar_target(parser):
                 parser.avanzar()
                 tipo, inicio = parser.token_actual_tipo_valor()
                 if tipo == "MAS_DE_UNA_INSTRUCCION" and inicio == "PolloCrudo":
-                    parser.manejo_bloque(tipo, inicio)
+                    manejo_bloque(parser, tipo, inicio)
                 else:
                     print("Error: Se esperaba un bloque PolloCrudo después de 'miss'")
                     print(f"-----------------------------------------------------------------------")
@@ -322,7 +321,7 @@ def procesar_walk(parser):
             return
 
         parser.avanzar()
-        parser.manejo_bloque("MAS_DE_UNA_INSTRUCCION", "PolloCrudo")
+        manejo_bloque(parser, "MAS_DE_UNA_INSTRUCCION", "PolloCrudo")
 
 # ------------------------------------------------------------------------------
 # WITHER - WITH
@@ -355,7 +354,7 @@ def procesar_wither(parser):
         parser.actualizar_token("ERROR", inicio)
         return
 
-    parser.manejo_bloque(tipo, inicio)
+    manejo_bloque(parser, tipo, inicio)
 
 # ------------------------------------------------------------------------------
 # CREEPER - BREAK

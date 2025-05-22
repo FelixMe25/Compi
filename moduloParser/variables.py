@@ -129,10 +129,8 @@ def seccion_variables(parser, token, valor):
 #----------------------------------------------------------------------------
 
 def procesar_dato_stack(parser):
-    parser._procesar_tipo_dato("Stack", "ENTERO")
-    parser._procesar_operaciones_enteros()
-
-
+    _procesar_tipo_dato(parser, "Stack", "ENTERO")
+  
 """
 ----------------------------------------------------------------------------
  CARÁCTER - Rune <id> = <char_literal>;
@@ -151,7 +149,7 @@ Rune Rune = 'r';              # Error: 'Rune' es un tipo de dato y no puede usar
 """
 
 def procesar_dato_rune(parser):
-    parser._procesar_tipo_dato("Rune", "CARACTER")
+    _procesar_tipo_dato(parser, "Rune", "CARACTER")
 
 #----------------------------------------------------------------------------
 # STRING - Spider <id> = <string_literal>;
@@ -168,7 +166,7 @@ def procesar_dato_rune(parser):
 # Spider Spider = "x";             # Error: 'Spider' es un tipo de dato y no puede usarse como identificador
 #----------------------------------------------------------------------------
 def procesar_dato_spider(parser):
-    parser._procesar_tipo_dato("Spider", "STRING")
+    _procesar_tipo_dato(parser, "Spider", "STRING")
 
 
 #----------------------------------------------------------------------------
@@ -186,7 +184,7 @@ def procesar_dato_spider(parser):
 # Torch encendido = On Off;          # Error: Se esperaba ',' o ';' después del literal
 #----------------------------------------------------------------------------
 def procesar_dato_torch(parser):
-    parser._procesar_tipo_dato("Torch", "BOOL")
+    _procesar_tipo_dato(parser, "Torch", "BOOL")
 
 
 #----------------------------------------------------------------------------
@@ -205,7 +203,7 @@ def procesar_dato_torch(parser):
 # Chest Chest = {: 'a' :};            # Error: 'Chest' es un tipo de dato y no puede usarse como identificador
 #----------------------------------------------------------------------------
 def procesar_dato_chest(parser):
-    parser._procesar_tipo_dato("Chest", "CONJUNTO")
+    _procesar_tipo_dato(parser, "Chest", "CONJUNTO")
 
 """
 ----------------------------------------------------------------------------
@@ -230,7 +228,7 @@ Book Book = {/ "archivo.txt", 'L' /};             # Error: 'Book' es un tipo, no
 ----------------------------------------------------------------------------
 """
 def procesar_dato_book(parser):
-    parser._procesar_tipo_dato("Book", "ARCHIVO")
+    _procesar_tipo_dato(parser, "Book", "ARCHIVO")
 
 
 #----------------------------------------------------------------------------
@@ -251,7 +249,7 @@ def procesar_dato_book(parser):
 # Ghast Ghast = 4.0;              # Error: 'Ghast' es un tipo, no se puede usar como identificador
 #----------------------------------------------------------------------------
 def procesar_dato_ghast(parser):
-    parser._procesar_tipo_dato("Ghast", "FLOAT")
+    _procesar_tipo_dato(parser, "Ghast", "FLOAT")
 
 
 
@@ -273,7 +271,7 @@ def procesar_dato_ghast(parser):
 # Entity Entity = { 'X', "Data", 1 };          # Error: 'Entity' es un tipo, no puede ser nombre
 #----------------------------------------------------------------------------
 def procesar_dato_entity(parser):
-    parser._procesar_tipo_dato("Entity", "REGISTROS")
+    _procesar_tipo_dato(parser, "Entity", "REGISTROS")
 
 #----------------------------------------------------------------------------
 # TIPO DE DATO ARREGLO, DECLARACION Y LITERAL  (Shelf <type> <id> = <array_literal> )    FALTA 

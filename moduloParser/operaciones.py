@@ -237,7 +237,7 @@ def procesar_operacion_torch(parser):
                 return
             parser.avanzar()
 
-            parser._validar_operacion_booleana(interno=True)
+            _validar_operacion_booleana(interno=True)
             tipo, cierra = parser.token_actual_tipo_valor()
             if tipo != "SIMBOLO" or cierra != ")":
                 print(" Error: Se esperaba ')' para cerrar la operación not().")
@@ -249,7 +249,7 @@ def procesar_operacion_torch(parser):
 
         # Caso directo: A and B, A or B, A xor B
         else:
-            parser._validar_operacion_booleana(interno=False)
+            _validar_operacion_booleana(interno=False)
 
         # Validar cierre con punto y coma
         tipo, final = parser.token_actual_tipo_valor()
