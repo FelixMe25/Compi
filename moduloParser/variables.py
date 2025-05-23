@@ -1,3 +1,5 @@
+from moduloParser.validaciones_semanticas import validar_declaracion_variable
+
 #----------------------------------------------------------------------------
 #   SECCION DE VARIABLES (Inventory)
 #----------------------------------------------------------------------------
@@ -13,6 +15,9 @@
 def seccion_variables(parser, token, valor):
         print(f"---- Sección de variables detectada: {valor}")
         parser.avanzar()
+        tabla_simbolos = parser.tabla
+        es_inicializado = False
+        valor_inicializacion = None
 
         while not parser.fin():
             tipo_token, tipo_valor = parser.token_actual_tipo_valor()
@@ -26,7 +31,7 @@ def seccion_variables(parser, token, valor):
                 break  
              # Detectar Shelf y procesar arreglo aparte
             if tipo_token == "TIPO_ARREGLOS" and tipo_valor == "Shelf":
-                parser.procesar_arreglo()
+                procesar_arreglo(parser)
                 continue
             tipo_dato = tipo_valor
             tipo_base = tipo_token.replace("TIPO_", "")
@@ -65,12 +70,20 @@ def seccion_variables(parser, token, valor):
                         print(f"-----------------------------------------------------------------------")
                         parser.actualizar_token("ERROR", literal_val)
                         return
+                    es_inicializado = True
+                    valor_inicializacion = literal_val 
                     print(f"---- Inicialización: {var_name} = {literal_val}")
                     print(f"-----------------------------------------------------------------------")
                     parser.avanzar()
                     tipo, sep = parser.token_actual_tipo_valor()
                 else:
                     tipo, sep = parser.token_actual_tipo_valor()
+                
+                # Validación Semántica
+                if not validar_declaracion_variable(tabla_simbolos, var_name, tipo_base, es_inicializado, valor_inicializacion):
+                    parser.actualizar_token("ERROR", var_name)
+                    return
+                
                 if tipo == "SIMBOLO" and sep == ",":
                     parser.avanzar()
                     continue

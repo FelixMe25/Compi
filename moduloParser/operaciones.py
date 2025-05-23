@@ -25,6 +25,7 @@ def procesar_asignacion_compuesta(parser):
 # ------------------------------------------------------------------------------
 def _procesar_operaciones_enteros(parser):
         tipo, valor = parser.token_actual_tipo_valor()
+        
         # Incremento: soulsand var;
         if tipo == "PALABRA_RESERVADA" and valor == "soulsand":
             parser.avanzar()
@@ -35,11 +36,11 @@ def _procesar_operaciones_enteros(parser):
                 parser.actualizar_token("ERROR", var_name)
                 return
             print(f"---- Operación válida: soulsand {var_name};")
-            print(f"-----------------------------------------------------------------------")
+            print(f"-----------------------------------------------------------------------")            
             parser.avanzar()
             tipo_simb, simb = parser.token_actual_tipo_valor()
             if tipo_simb == "SIMBOLO" and simb == ";":
-                parser.avanzar()
+                parser.avanzar()                
             else:
                 print(f"Error: Falta ';' luego de soulsand {var_name}")
                 print(f"-----------------------------------------------------------------------")
