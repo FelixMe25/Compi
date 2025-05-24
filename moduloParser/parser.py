@@ -21,7 +21,6 @@ from moduloParser.tipos import seccion_tipos
 
 from moduloParser.operaciones import (
     procesar_entity_en_inventory,
-    _procesar_incremento_decremento,
     procesar_asignacion_compuesta,
     _procesar_operaciones_enteros,
     procesar_operacion_rune,
@@ -32,7 +31,9 @@ from moduloParser.operaciones import (
     procesar_operacion_archivo,
     procesar_asignacion_archivo,
     procesar_escritura_archivo,
-    _procesar_operaciones_ghast
+    _procesar_operaciones_ghast,
+    procesar_operacion_incremento,
+    procesar_operacion_decremento
 )
 
 from moduloParser.instrucciones import (
@@ -244,9 +245,9 @@ class Parser:
         elif tipo == "OPERADOR_ENTRADA" and valor.startswith("hopper"):
             procesar_entrada_estandar(self)
         elif tipo == "OPERADOR_INCREMENTO":
-            self.procesar_operacion_incremento()
+            procesar_operacion_incremento(self)
         elif tipo == "OPERADOR_DECREMENTO":
-            self.procesar_operacion_decremento()
+            procesar_operacion_decremento(self)
         elif tipo == "OPERACION_WHILE" and valor == "repeater":
             procesar_repeater(self)
         elif tipo == "OPERACION_IF" and valor == "target":
@@ -432,6 +433,7 @@ class Parser:
                         self.avanzar()
             else:
                 self.avanzar()
+    
 
 
     #----------------------------------------------------------------------------
@@ -601,15 +603,16 @@ class Parser:
 
             if tipo_actual in ["LITERAL_CHAR", "OPERADOR_VACIO"]:
                 procesar_consulta_chest(self)
-            
                 continue
-         
+
             self.tabla.mostrar()
             self.avanzar()
-
+                
+            
     def cierre_programa(self, token, valor):
         print(f"--- Cierre del programa detectado con: {valor}")
         print(f"-----------------------------------------------------------------------")
         print("--- Programa cerrado correctamente con 'worldSave'.\n")
         print(f"-----------------------------------------------------------------------")
         self.avanzar()
+        

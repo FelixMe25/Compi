@@ -26,48 +26,6 @@ def procesar_asignacion_compuesta(parser):
 def _procesar_operaciones_enteros(parser):
         tipo, valor = parser.token_actual_tipo_valor()
         
-        # Incremento: soulsand var;
-        if tipo == "PALABRA_RESERVADA" and valor == "soulsand":
-            parser.avanzar()
-            tipo_var, var_name = parser.token_actual_tipo_valor()
-            if tipo_var != "IDENTIFICADOR":
-                print(f" Error: Se esperaba identificador después de 'soulsand'")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", var_name)
-                return
-            print(f"---- Operación válida: soulsand {var_name};")
-            print(f"-----------------------------------------------------------------------")            
-            parser.avanzar()
-            tipo_simb, simb = parser.token_actual_tipo_valor()
-            if tipo_simb == "SIMBOLO" and simb == ";":
-                parser.avanzar()                
-            else:
-                print(f"Error: Falta ';' luego de soulsand {var_name}")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", simb)
-            return
-
-        # Decremento: magma var;
-        if tipo == "PALABRA_RESERVADA" and valor == "magma":
-            parser.avanzar()
-            tipo_var, var_name = parser.token_actual_tipo_valor()
-            if tipo_var != "IDENTIFICADOR":
-                print(f"Error: Se esperaba identificador después de 'magma'")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", var_name)
-                return
-            print(f"---- Operación válida: magma {var_name};")
-            print(f"-----------------------------------------------------------------------")
-            parser.avanzar()
-            tipo_simb, simb = parser.token_actual_tipo_valor()
-            if tipo_simb == "SIMBOLO" and simb == ";":
-                parser.avanzar()
-            else:
-                print(f"Error: Falta ';' luego de magma {var_name}")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", simb)
-            return
-
         # Operación aritmética binaria: resultado = op1 + op2;
         if tipo == "IDENTIFICADOR":
             var_res = valor
@@ -146,6 +104,58 @@ def _procesar_incremento_decremento(parser, operador):
         print(f"-----------------------------------------------------------------------")
         parser.actualizar_token("ERROR", simbolo)
         parser.saltar_hasta_puntoycoma()
+
+def procesar_operacion_incremento(parser):
+        tipo, valor = parser.token_actual_tipo_valor()
+
+        # Incremento: soulsand var;
+        if tipo == "PALABRA_RESERVADA" and valor == "soulsand":
+            parser.avanzar()
+            tipo_var, var_name = parser.token_actual_tipo_valor()
+            if tipo_var != "IDENTIFICADOR":
+                print(f" Error: Se esperaba identificador después de 'soulsand'")
+                print(f"-----------------------------------------------------------------------")
+                parser.actualizar_token("ERROR", var_name)
+                return
+            print(f"---- Operación válida: soulsand {var_name};")
+            print(f"-----------------------------------------------------------------------")            
+            parser.avanzar()
+            tipo_simb, simb = parser.token_actual_tipo_valor()
+            if tipo_simb == "SIMBOLO" and simb == ";":
+                parser.avanzar()                
+            else:
+                print(f"Error: Falta ';' luego de soulsand {var_name}")
+                print(f"-----------------------------------------------------------------------")
+                parser.actualizar_token("ERROR", simb)
+
+            _procesar_incremento_decremento(parser, valor)
+            return
+
+def procesar_operacion_decremento(parser):
+        tipo, valor = parser.token_actual_tipo_valor()
+            # Decremento: magma var;
+        if tipo == "PALABRA_RESERVADA" and valor == "magma":
+            parser.avanzar()
+            tipo_var, var_name = parser.token_actual_tipo_valor()
+            if tipo_var != "IDENTIFICADOR":
+                print(f"Error: Se esperaba identificador después de 'magma'")
+                print(f"-----------------------------------------------------------------------")
+                parser.actualizar_token("ERROR", var_name)
+                return
+            print(f"---- Operación válida: magma {var_name};")
+            print(f"-----------------------------------------------------------------------")
+            parser.avanzar()
+            tipo_simb, simb = parser.token_actual_tipo_valor()
+            if tipo_simb == "SIMBOLO" and simb == ";":
+                parser.avanzar()
+            else:
+                print(f"Error: Falta ';' luego de magma {var_name}")
+                print(f"-----------------------------------------------------------------------")
+                parser.actualizar_token("ERROR", simb)
+            _procesar_incremento_decremento(parser, valor)
+            return
+
+
 
 # ------------------------------------------------------------------------------
 #  OPERACIONES DE TIPO CARACTER 

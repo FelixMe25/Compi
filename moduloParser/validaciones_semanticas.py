@@ -1,6 +1,7 @@
 """
+-----------------------------------------------
 Valida la declaración de una variable.
-
+---------------------------------------------------------
 Args:
     tabla_simbolos (TablaSimbolos): La tabla de símbolos actual.
     nombre_variable (str): El nombre de la variable que se está declarando.
@@ -28,7 +29,9 @@ def validar_declaracion_variable(tabla_simbolos, nombre_variable, tipo_variable,
         print(f"---- Variable '{nombre_variable}' de tipo '{tipo_variable}' declarada correctamente.")
         return True
 
-
+#-------------------------------------------------------------
+# Validación de declaración e inicialización de Constantes
+#---------------------------------------------------------------
 def validar_declaracion_constante(tabla_simbolos, nombre_variable, tipo_variable, inicializado=False, valor_inicializacion=None):
     if tabla_simbolos.existe(nombre_variable):
         print(f"Error semántico: La constante '{nombre_variable}' ya ha sido declarada.")
@@ -45,8 +48,9 @@ def validar_declaracion_constante(tabla_simbolos, nombre_variable, tipo_variable
         return True
 
 """
+------------------------------------------------------------
 Valida la declaración de una variable de tipo Shelf.
-
+--------------------------------------------------------------
 Args:
     tabla_simbolos (TablaSimbolos): La tabla de símbolos actual.
     nombre_variable (str): El nombre de la variable Shelf que se está declarando.
@@ -75,8 +79,6 @@ def validar_variable_shelf(tabla_simbolos, nombre_variable, tipo_base_shelf, val
      print("-------- VALIDACIÓN SEMÁNTICA -------------------------")
      print(f"---- Arreglo Shelf '{nombre_variable}' de tipo '{tipo_base_shelf}' declarado e inicializado correctamente.")
      return True
-
-
 
 
 def validar_tipo_dato_entero(tipo_dato):
