@@ -38,12 +38,18 @@ class TablaSimbolos:
             simbolo["inicializado"] = True
 
     def mostrar(self):
-        print(f"--- Tabla de Símbolos ({self.ambito}) ---")
+        print(f"Diccionario Semántico - Ámbito: {self.ambito}")
         for nombre, datos in self.simbolos.items():
-            print(f"   {nombre} -> {datos}")
+            tipo = datos["tipo"]
+            clase = datos["clase"]
+            inicializado = datos["inicializado"]
+            info = datos["info"]
+            print(f"  {nombre:<15} | Tipo: {tipo:<10} | Clase: {clase:<10} | Inicializado: {inicializado} | Info: {info}")
+        
         if self.padre:
-            print("--- Ámbito Padre ---")
-            self.padre.mostrar()
+            print("↪ Ámbito Padre:")
+            self.padre.mostrar_semantico()
+
 
     # --- Nuevas Funcionalidades ---
 
