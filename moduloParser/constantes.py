@@ -1,3 +1,4 @@
+from moduloParser.validaciones_semanticas import validar_declaracion_constante
 #----------------------------------------------------------------------------
 #   SECCION DE CONSTANTES (Bedrock)
 #   SISTEMA DE ASIGNACIONDE CONSTANTES (Obsidian <type> <id> <value>)
@@ -77,16 +78,13 @@ def seccion_constante(parser, token, valor):
                 print(f"---- Declaración válida: Obsidian {tipo_dato} {nombre} {valor_literal}")
                 print(f"-----------------------------------------------------------------------")
 
-                # Aquí agregás a la tabla
-                if not parser.tabla.agregar(nombre, tipo_dato, "constante", True):
-                    print(f"Error: La constante '{nombre}' ya fue declarada anteriormente.")
+                # Validación Semántica
+                tabla_simbolos = parser.tabla
+                if not validar_declaracion_constante(tabla_simbolos, nombre, tipo_dato, True, valor_literal):
                     parser.actualizar_token("ERROR", nombre)
-
+                    return
+                
                 parser.avanzar()
-
-                # Esto es solo para debug
-                print("\n📋 Tabla de símbolos (constantes):")
-                parser.tabla.mostrar()
                 continue
 
             else:

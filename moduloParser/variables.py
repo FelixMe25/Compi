@@ -1,4 +1,4 @@
-from moduloParser.validaciones_semanticas import validar_declaracion_variable
+from moduloParser.validaciones_semanticas import validar_declaracion_variable, validar_variable_shelf
 
 #----------------------------------------------------------------------------
 #   SECCION DE VARIABLES (Inventory)
@@ -31,7 +31,10 @@ def seccion_variables(parser, token, valor):
                 break  
              # Detectar Shelf y procesar arreglo aparte
             if tipo_token == "TIPO_ARREGLOS" and tipo_valor == "Shelf":
-                procesar_arreglo(parser)
+                tipo_base_shelf, var_name, arreglo_val = procesar_arreglo(parser)
+                if not validar_variable_shelf(tabla_simbolos, var_name, tipo_base_shelf, arreglo_val):
+                     parser.actualizar_token("ERROR", var_name)
+                     return
                 continue
             tipo_dato = tipo_valor
             tipo_base = tipo_token.replace("TIPO_", "")
@@ -365,6 +368,7 @@ def procesar_arreglo(parser):
             print(f"-----------------------------------------------------------------------")
             parser.actualizar_token("ERROR", simbolo)
             return
+        return tipo_base, var_name, arreglo_val
 
 #----------------------------------------------------------------------------
 #   FUNCION BASE QUE VALIDA ESTRUCTURA Y LITERALES POR TIPO

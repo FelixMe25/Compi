@@ -603,10 +603,8 @@ class Parser:
                 procesar_consulta_chest(self)
             
                 continue
-            print("\n📋 Tabla de símbolos hasta ahora:")
+         
             self.tabla.mostrar()
-
-
             self.avanzar()
 
     def cierre_programa(self, token, valor):
