@@ -9,7 +9,7 @@
 #----------------------------------------------------------------------------
     
 def seccion_tipos(parser, token, valor):
-        print(f"➡ Sección de tipos detectada: {valor}")
+        print(f"Sección de tipos detectada: {valor}")
         parser.avanzar()
 
         tipos_base_validos = (
