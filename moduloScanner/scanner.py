@@ -54,6 +54,7 @@ TIPOS_TOKEN = {
     "TIPO_FLOAT": "lightsalmon",
     "TIPO_ARREGLOS": "papayawhip",
     "TIPO_REGISTROS": "oldlace",
+
     "TIPO_BOOL": "oldlace",
 
     # Literales
@@ -215,6 +216,13 @@ class Scanner:
     def tomeCaracter(self):
         self.buffer_pos = max(0, self.buffer_pos - 1)
         self.columna = max(1, self.columna - 1)
+
+    def reconocer_entity_kill(self, lexema):
+        if lexema == 'Entity':
+            return ("INICIO_ENTITY", lexema)
+        elif lexema == 'kill':
+            return ("FIN_ENTITY", lexema)
+        return None
 
     def DemeToken(self):
         lexema = ""
@@ -412,7 +420,9 @@ class Scanner:
                 return ("TIPO_ARREGLOS", lexema)
             
             elif lexema == 'Entity':
-                return ("TIPO_REGISTROS", lexema)
+                return ("INICIO_ENTITY", lexema)
+            elif lexema == 'kill':
+                return ("FIN_ENTITY", lexema)
             
             elif lexema == 'soulsand':
                 return ("OPERADOR_INCREMENTO", lexema) 
@@ -1055,45 +1065,6 @@ class Scanner:
                 # {nombre: ~Steve~};
                 # ------------------------------------------------------------------------
 
-                else:
-                    self.tomeCaracter()  # devolver el carácter que no era / ni :
-                    lexema = '{'
-                    c = self.demeCaracter()
-                    contiene_dos_puntos = False
-                    tiene_llave = False
-                    tiene_valor = False
-
-                    while c is not None and c != '}':
-                        lexema += c
-
-                        # Detectar clave
-                        if c.isalpha():
-                            tiene_llave = True
-
-                        if c == ':':
-                            contiene_dos_puntos = True
-                            c = self.demeCaracter()
-                            while c is not None and c.isspace():
-                                lexema += c
-                                c = self.demeCaracter()
-                            if c is not None:
-                                tiene_valor = True
-                                lexema += c
-
-                        c = self.demeCaracter()
-
-                    if c == '}':
-                        lexema += '}'
-                        if not contiene_dos_puntos:
-                            return ("ERROR", lexema + " (registro sin clave:valor)")
-                        if not tiene_llave:
-                            return ("ERROR", lexema + " (registro sin clave)")
-                        if not tiene_valor:
-                            return ("ERROR", lexema + " (registro sin valor)")
-                        return ("LITERAL_REGISTRO", lexema)
-                    else:
-                        return ("ERROR", lexema + " (registro sin cierre)")
-
 
 
         # ---------------------------------------------------------------------------------------------
@@ -1134,6 +1105,12 @@ class Scanner:
             while c is not None and (c.isalnum() or c == "_"):
                 lexema += c
                 c = self.demeCaracter()
+
+            # --- Llamada a la función auxiliar para Entity/kill ---
+            token_entity = self.reconocer_entity_kill(lexema)
+            if token_entity:
+                return token_entity
+            # --- Fin llamada auxiliar ---
 
             # Se guarda el identificador base
             base_identificador = lexema

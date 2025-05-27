@@ -1,4 +1,4 @@
-from moduloParser.validaciones_semanticas import validar_declaracion_variable, validar_variable_shelf
+from moduloParser.validaciones_semanticas import validar_declaracion_variable, validar_variable_shelf, validar_declaracion_entity
 
 #----------------------------------------------------------------------------
 #   SECCION DE VARIABLES (Inventory)
@@ -13,93 +13,102 @@ from moduloParser.validaciones_semanticas import validar_declaracion_variable, v
 #----------------------------------------------------------------------------
 
 def seccion_variables(parser, token, valor):
-        print(f"---- Sección de variables detectada: {valor}")
+    print(f"\n╔{'═'*66}╗")
+    print(f"       SECCIÓN DE VARIABLES iniciada con: {valor:<35}   ")
+    print(f"╚{'═'*66}╝")
+    parser.avanzar()
+    tabla_simbolos = parser.tabla
+
+    while not parser.fin():
+        tipo_token, tipo_valor = parser.token_actual_tipo_valor()
+        # --- PATCH: Si es INICIO_ENTITY, procesar bloque Entity ---
+        if tipo_token == "INICIO_ENTITY":
+            procesar_entity(parser)
+            continue
+        tipos_validos = (
+            "TIPO_ENTERO", "TIPO_STRING", "TIPO_CARACTER", "TIPO_FLOAT",
+            "TIPO_CONJUNTO", "TIPO_ARCHIVO", "TIPO_ARREGLOS",
+            "TIPO_REGISTROS", "TIPO_BOOL"
+        )
+
+        if tipo_token not in tipos_validos:
+            break  
+        # Detectar Shelf y procesar arreglo aparte
+        if tipo_token == "TIPO_ARREGLOS" and tipo_valor == "Shelf":
+            tipo_base_shelf, var_name, arreglo_val = procesar_arreglo(parser)
+            if not validar_variable_shelf(tabla_simbolos, var_name, tipo_base_shelf, arreglo_val):
+                parser.actualizar_token("ERROR", var_name)
+                return
+            continue
+        tipo_dato = tipo_valor
+        tipo_base = tipo_token.replace("TIPO_", "")
         parser.avanzar()
-        tabla_simbolos = parser.tabla
-        es_inicializado = False
-        valor_inicializacion = None
 
         while not parser.fin():
-            tipo_token, tipo_valor = parser.token_actual_tipo_valor()
-            tipos_validos = (
-                "TIPO_ENTERO", "TIPO_STRING", "TIPO_CARACTER", "TIPO_FLOAT",
-                "TIPO_CONJUNTO", "TIPO_ARCHIVO", "TIPO_ARREGLOS",
-                "TIPO_REGISTROS", "TIPO_BOOL"
-            )
-
-            if tipo_token not in tipos_validos:
-                break  
-             # Detectar Shelf y procesar arreglo aparte
-            if tipo_token == "TIPO_ARREGLOS" and tipo_valor == "Shelf":
-                tipo_base_shelf, var_name, arreglo_val = procesar_arreglo(parser)
-                if not validar_variable_shelf(tabla_simbolos, var_name, tipo_base_shelf, arreglo_val):
-                     parser.actualizar_token("ERROR", var_name)
-                     return
-                continue
-            tipo_dato = tipo_valor
-            tipo_base = tipo_token.replace("TIPO_", "")
+            es_inicializado = False  # <-- Mover aquí
+            valor_inicializacion = None  # <-- Mover aquí
+            tipo, var_name = parser.token_actual_tipo_valor()
+            if tipo != "IDENTIFICADOR":
+                print(f"─"*70)
+                print(f"Error: Se esperaba un identificador después del tipo '{tipo_dato}'")
+                print(f"─"*70)
+                parser.actualizar_token("ERROR", var_name)
+                return
+            print(f"\n┌────────────────────────────────────────────────────────────────┐")
+            print(f"    Variable detectada: {tipo_dato} {var_name:<45}                 ")
+            print(f"└────────────────────────────────────────────────────────────────┘")
             parser.avanzar()
 
-            while True:
-                tipo, var_name = parser.token_actual_tipo_valor()
-                if tipo != "IDENTIFICADOR":
-                    print(f"Error: Se esperaba un identificador después del tipo '{tipo_dato}'")
-                    parser.actualizar_token("ERROR", var_name)
-                    return
-                print(f"-----------------------------------------------------------------------")
-                print(f"---- Variable detectada: {tipo_dato} {var_name}")
+            # ¿Inicialización?
+            tipo, val = parser.token_actual_tipo_valor()
+            if tipo == "OPERADOR" and val == "=":
                 parser.avanzar()
+                tipo_literal, literal_val = parser.token_actual_tipo_valor()
 
-                # ¿Inicialización?
-                tipo, val = parser.token_actual_tipo_valor()
-                if tipo == "OPERADOR" and val == "=":
-                    parser.avanzar()
-                    tipo_literal, literal_val = parser.token_actual_tipo_valor()
+                literales_validos = {
+                    "ENTERO": ["LITERAL_ENTERO"],
+                    "STRING": ["LITERAL_STRING"],
+                    "CARACTER": ["LITERAL_CHAR"],
+                    "FLOAT": ["LITERAL_FLOAT"],
+                    "CONJUNTO": ["LITERAL_CONJUNTO"],
+                    "ARCHIVO": ["LITERAL_ARCHIVO"],
+                    "ARREGLOS": ["LITERAL_ARREGLO"],
+                    "REGISTROS": ["LITERAL_REGISTRO"],
+                    "BOOL": ["LITERAL_BOOL"]
+                }
 
-                    literales_validos = {
-                        "ENTERO": ["LITERAL_ENTERO"],
-                        "STRING": ["LITERAL_STRING"],
-                        "CARACTER": ["LITERAL_CHAR"],
-                        "FLOAT": ["LITERAL_FLOAT"],
-                        "CONJUNTO": ["LITERAL_CONJUNTO"],
-                        "ARCHIVO": ["LITERAL_ARCHIVO"],
-                        "ARREGLOS": ["LITERAL_ARREGLO"],
-                        "REGISTROS": ["LITERAL_REGISTRO"],
-                        "BOOL": ["LITERAL_BOOL"]
-                    }
-
-                    if tipo_literal not in literales_validos.get(tipo_base, []):
-                        print(f"Error: El valor '{literal_val}' no es válido para el tipo {tipo_dato}")
-                        print(f"-----------------------------------------------------------------------")
-                        parser.actualizar_token("ERROR", literal_val)
-                        return
-                    es_inicializado = True
-                    valor_inicializacion = literal_val 
-                    print(f"---- Inicialización: {var_name} = {literal_val}")
-                    print(f"-----------------------------------------------------------------------")
-                    parser.avanzar()
-                    tipo, sep = parser.token_actual_tipo_valor()
-                else:
-                    tipo, sep = parser.token_actual_tipo_valor()
-                
-                # Validación Semántica
-                if not validar_declaracion_variable(tabla_simbolos, var_name, tipo_base, es_inicializado, valor_inicializacion):
-                    parser.actualizar_token("ERROR", var_name)
+                if tipo_literal not in literales_validos.get(tipo_base, []):
+                    print(f"─"*70)
+                    print(f"Error: El valor '{literal_val}' no es válido para el tipo {tipo_dato}")
+                    print(f"─"*70)
+                    parser.actualizar_token("ERROR", literal_val)
                     return
-                
-                if tipo == "SIMBOLO" and sep == ",":
-                    parser.avanzar()
-                    continue
-                elif tipo == "SIMBOLO" and sep == ";":
-                    print(f"---- Declaración finalizada para tipo {tipo_dato}\n")
-                    print(f"-----------------------------------------------------------------------")
-                    parser.avanzar()
-                    break
-                else:
-                    print("Error: Se esperaba ',' o ';' después del identificador o literal")
-                    print(f"-----------------------------------------------------------------------")
-                    parser.actualizar_token("ERROR", sep)
-                    return
+                es_inicializado = True
+                valor_inicializacion = literal_val 
+                print(f"    Inicialización: {var_name} = {literal_val}")
+                parser.avanzar()
+                tipo, sep = parser.token_actual_tipo_valor()
+            else:
+                tipo, sep = parser.token_actual_tipo_valor()
+            
+            # Validación Semántica
+            if not validar_declaracion_variable(tabla_simbolos, var_name, tipo_base, es_inicializado, valor_inicializacion):
+                parser.actualizar_token("ERROR", var_name)
+                continue
+            
+            if tipo == "SIMBOLO" and sep == ",":
+                parser.avanzar()
+                continue
+            elif tipo == "SIMBOLO" and sep == ";":
+                print(f"    Declaración finalizada para tipo {tipo_dato}")
+                parser.avanzar()
+                break
+            else:
+                print(f"─"*70)
+                print("Error: Se esperaba ',' o ';' después del identificador o literal")
+                print(f"─"*70)
+                parser.actualizar_token("ERROR", sep)
+                return
                 
 #----------------------------------------------------------------------------
 # TIPOS DE DATOS 
@@ -314,128 +323,267 @@ def procesar_dato_entity(parser):
 #----------------------------------------------------------------------------
 
 def procesar_arreglo(parser):
-        print(f"-----------------------------------------------------------------------")
-        print("---- Procesando declaración de arreglo Shelf")
-        parser.avanzar()  # saltar 'Shelf'
+    print(f"\n╔{'═'*66}╗")
+    print("     Procesando declaración de arreglo Shelf" + " "*32 + "")
+    print(f"╚{'═'*66}╝")
+    parser.avanzar()  # saltar 'Shelf'
 
-        # Validar tipo base
-        tipo, tipo_base = parser.token_actual_tipo_valor()
-        if not tipo.startswith("TIPO_"):
-            print(f"Error: Se esperaba un tipo base después de 'Shelf', pero se encontró: {tipo_base}")
-            print(f"-----------------------------------------------------------------------")
-            parser.actualizar_token("ERROR", tipo_base)
-            return
+    # Validar tipo base
+    tipo, tipo_base = parser.token_actual_tipo_valor()
+    if not tipo.startswith("TIPO_"):
+        print(f"─"*70)
+        print(f"Error: Se esperaba un tipo base después de 'Shelf', pero se encontró: {tipo_base}")
+        print(f"─"*70)
+        parser.actualizar_token("ERROR", tipo_base)
+        return
+    parser.avanzar()
+
+    # Validar identificador
+    tipo, var_name = parser.token_actual_tipo_valor()
+    if tipo != "IDENTIFICADOR":
+        print(f"─"*70)
+        print(f"Error: Se esperaba un identificador para el arreglo después del tipo '{tipo_base}'")
+        print(f"─"*70)
+        parser.actualizar_token("ERROR", var_name)
+        return
+    print(f"\n┌{'─'*66}┐")
+    print(f"    Arreglo detectado: Shelf {tipo_base} {var_name:<41}")
+    print(f"└{'─'*66}┘")
+    parser.avanzar()
+
+    # Validar '='
+    tipo, simbolo = parser.token_actual_tipo_valor()
+    if tipo != "OPERADOR" or simbolo != "=":
+        print(f"─"*70)
+        print("Error: Se esperaba '=' después del identificador del arreglo")
+        print(f"─"*70)
+        parser.actualizar_token("ERROR", simbolo)
+        return
+    parser.avanzar()
+
+    # Validar literal de arreglo
+    tipo, arreglo_val = parser.token_actual_tipo_valor()
+    if tipo != "LITERAL_ARREGLO":
+        print(f"─"*70)
+        print(f"Error: Se esperaba un literal de arreglo, pero se encontró: ({tipo}, '{arreglo_val}')")
+        print(f"─"*70)
+        parser.actualizar_token("ERROR", arreglo_val)
+        return
+    print(f"    Inicialización válida: {var_name} = {arreglo_val}")
+    parser.avanzar()
+
+    # Validar cierre con ;
+    tipo, simbolo = parser.token_actual_tipo_valor()
+    if tipo == "SIMBOLO" and simbolo == ";":
+        print(f"    Declaración finalizada: Shelf {tipo_base} {var_name} = {arreglo_val}\n")
         parser.avanzar()
-
-        # Validar identificador
-        tipo, var_name = parser.token_actual_tipo_valor()
-        if tipo != "IDENTIFICADOR":
-            print(f"Error: Se esperaba un identificador para el arreglo después del tipo '{tipo_base}'")
-            print(f"-----------------------------------------------------------------------")
-            parser.actualizar_token("ERROR", var_name)
-            return
-        print(f"Arreglo detectado: Shelf {tipo_base} {var_name}")
-        parser.avanzar()
-
-        # Validar '='
-        tipo, simbolo = parser.token_actual_tipo_valor()
-        if tipo != "OPERADOR" or simbolo != "=":
-            print("Error: Se esperaba '=' después del identificador del arreglo")
-            print(f"-----------------------------------------------------------------------")
-            parser.actualizar_token("ERROR", simbolo)
-            return
-        parser.avanzar()
-
-        # Validar literal de arreglo
-        tipo, arreglo_val = parser.token_actual_tipo_valor()
-        if tipo != "LITERAL_ARREGLO":
-            print(f"Error: Se esperaba un literal de arreglo, pero se encontró: ({tipo}, '{arreglo_val}')")
-            print(f"-----------------------------------------------------------------------")
-            parser.actualizar_token("ERROR", arreglo_val)
-            return
-        print(f"---- Inicialización válida: {var_name} = {arreglo_val}")
-        print(f"-----------------------------------------------------------------------")
-        parser.avanzar()
-
-        # Validar cierre con ;
-        tipo, simbolo = parser.token_actual_tipo_valor()
-        if tipo == "SIMBOLO" and simbolo == ";":
-            print(f"---- Declaración finalizada: Shelf {tipo_base} {var_name} = {arreglo_val}\n")
-            print(f"-----------------------------------------------------------------------")
-            parser.avanzar()
-        else:
-            print("Error: Se esperaba ';' al final de la declaración del arreglo")
-            print(f"-----------------------------------------------------------------------")
-            parser.actualizar_token("ERROR", simbolo)
-            return
-        return tipo_base, var_name, arreglo_val
+    else:
+        print(f"─"*70)
+        print("Error: Se esperaba ';' al final de la declaración del arreglo")
+        print(f"─"*70)
+        parser.actualizar_token("ERROR", simbolo)
+        return
+    return tipo_base, var_name, arreglo_val
 
 #----------------------------------------------------------------------------
 #   FUNCION BASE QUE VALIDA ESTRUCTURA Y LITERALES POR TIPO
 #----------------------------------------------------------------------------
 def _procesar_tipo_dato(parser, tipo_dato_base, tipo_base):
-        print(f"---- Procesando declaración de tipo: {tipo_dato_base}")
-        print(f"-----------------------------------------------------------------------")
-        parser.avanzar()
-        while not parser.fin():
-            tipo, valor = parser.token_actual_tipo_valor()
+    print(f"\n╔{'═'*66}╗")
+    print(f"    Procesando declaración de tipo: {tipo_dato_base:<41}")
+    print(f"╚{'═'*66}╝")
+    parser.avanzar()
+    while not parser.fin():
+        tipo, valor = parser.token_actual_tipo_valor()
 
-            # ERROR 1 y 2: No es identificador, o es palabra reservada o tipo no válido
-            if not parser.validar_identificador(tipo, valor):
-                # Error ya mostrado por la función
-                return
-            
-            nombre = valor
-            print(f"-----------------------------------------------------------------------")
-            print(f"---- Tipo de dato detectado: {tipo_dato_base} {nombre}")
+        # ERROR 1 y 2: No es identificador, o es palabra reservada o tipo no válido
+        if not parser.validar_identificador(tipo, valor):
+            # Error ya mostrado por la función
+            return
+        nombre = valor
+        print(f"\n┌{'─'*66}┐")
+        print(f"    Tipo de dato detectado: {tipo_dato_base} {nombre:<38}")
+        print(f"└{'─'*66}┘")
+        parser.avanzar()
+
+        valor_literal = None
+
+        # Posible asignación con '='
+        tipo, simbolo = parser.token_actual_tipo_valor()
+        if tipo == "OPERADOR" and simbolo == "=":
+            parser.avanzar()
+            tipo_lit, valor_lit = parser.token_actual_tipo_valor()
+
+            # ERROR 3: Literal incompatible con el tipo
+            literales_validos = {
+                "ENTERO": ["LITERAL_ENTERO"],
+                "FLOAT": ["LITERAL_FLOAT"],
+                "STRING": ["LITERAL_STRING"],
+                "CARACTER": ["LITERAL_CHAR"],
+                "BOOL": ["LITERAL_BOOL"],
+                "CONJUNTO": ["LITERAL_CONJUNTO"],
+                "ARCHIVO": ["LITERAL_ARCHIVO"],
+                "ARREGLOS": ["LITERAL_ARREGLO"],
+                "REGISTROS": ["LITERAL_REGISTRO"]
+            }
+
+            if tipo_lit not in literales_validos.get(tipo_base, []):
+                print(f"─"*70)
+                print(f"Error: El valor '{valor_lit}' no es válido para el tipo {tipo_dato_base}")
+                print(f"─"*70)
+                parser.actualizar_token("ERROR", valor_lit)
+                parser.saltar_hasta_coma_o_puntoycoma()
+                continue  # O sigue procesando el siguiente identificador
+            valor_literal = valor_lit
+            print(f"  Inicialización válida: {nombre} = {valor_literal}")
             parser.avanzar()
 
-            valor_literal = None
+        # Cierre con ; o , o error
+        tipo, simbolo = parser.token_actual_tipo_valor()
+        if tipo == "SIMBOLO" and simbolo == ",":
+            print(f"↪ Otra variable del mismo tipo {tipo_dato_base} continúa...")
+            parser.avanzar()
+            continue
+        elif tipo == "SIMBOLO" and simbolo == ";":
+            print(f"  Declaración finalizada: {tipo_dato_base} {nombre}" + (f" = {valor_literal}" if valor_literal else ""))
+            parser.avanzar()
+            break
+        else:
+            # ERROR 4: Se esperaba ',' o ';'
+            print(f"─"*70)
+            print(f"Error: Se esperaba ',' o ';' después de la variable '{nombre}'")
+            print(f"─"*70)
+            parser.actualizar_token("ERROR", simbolo)
+            return
 
-            # Posible asignación con '='
-            tipo, simbolo = parser.token_actual_tipo_valor()
-            if tipo == "OPERADOR" and simbolo == "=":
+def procesar_entity(parser):
+    print(f"\n╔{'═'*66}╗")
+    print(f"    Procesando declaración de registro Entity")
+    print(f"╚{'═'*66}╝")
+    # Esperar INICIO_ENTITY
+    tipo, valor = parser.token_actual_tipo_valor()
+    if tipo != "INICIO_ENTITY":
+        print("Error: Se esperaba 'Entity' para iniciar el bloque de registro")
+        parser.actualizar_token("ERROR", valor)
+        parser.avanzar()  # Saltar el token erróneo y continuar
+        return
+    parser.avanzar()  # Saltar 'Entity'
+    campos = []
+    while not parser.fin():
+        tipo, valor = parser.token_actual_tipo_valor()
+        print(f"DEBUG TOKEN EN ENTITY: {tipo}, {valor}")  # <--- Agrega esto
+        if tipo == "FIN_ENTITY":
+            parser.avanzar()
+            break
+        if tipo == "TIPO_STRING" and valor == "Spider":
+            parser.avanzar()
+            tipo, nombre_campo = parser.token_actual_tipo_valor()
+            if tipo == "IDENTIFICADOR":
+                campos.append(("Spider", nombre_campo))
+                print(f"  Campo: Spider {nombre_campo}")
                 parser.avanzar()
-                tipo_lit, valor_lit = parser.token_actual_tipo_valor()
-
-                # ERROR 3: Literal incompatible con el tipo
-                literales_validos = {
-                    "ENTERO": ["LITERAL_ENTERO"],
-                    "FLOAT": ["LITERAL_FLOAT"],
-                    "STRING": ["LITERAL_STRING"],
-                    "CARACTER": ["LITERAL_CHAR"],
-                    "BOOL": ["LITERAL_BOOL"],
-                    "CONJUNTO": ["LITERAL_CONJUNTO"],
-                    "ARCHIVO": ["LITERAL_ARCHIVO"],
-                    "ARREGLOS": ["LITERAL_ARREGLO"],
-                    "REGISTROS": ["LITERAL_REGISTRO"]
-                }
-
-                if tipo_lit not in literales_validos.get(tipo_base, []):
-                    print(f"Error: El valor '{valor_lit}' no es válido para el tipo {tipo_dato_base}")
-                    print(f"-----------------------------------------------------------------------")
-                    parser.actualizar_token("ERROR", valor_lit)
-                    parser.saltar_hasta_coma_o_puntoycoma()
-                    continue  # O sigue procesando el siguiente identificador
-                valor_literal = valor_lit
-                print(f"---- Inicialización válida: {nombre} = {valor_literal}")
-                parser.avanzar()
-
-            # Cierre con ; o , o error
-            tipo, simbolo = parser.token_actual_tipo_valor()
-            if tipo == "SIMBOLO" and simbolo == ",":
-                print(f"↪ Otra variable del mismo tipo {tipo_dato_base} continúa...")
-                print(f"-----------------------------------------------------------------------")
-                parser.avanzar()
-                continue
-            elif tipo == "SIMBOLO" and simbolo == ";":
-                print(f"---- Declaración finalizada: {tipo_dato_base} {nombre}" + (f" = {valor_literal}" if valor_literal else ""))
-                print(f"-----------------------------------------------------------------------")
-                parser.avanzar()
-                break
+                tipo, sep = parser.token_actual_tipo_valor()
+                if tipo == "SIMBOLO" and sep == ";":
+                    parser.avanzar()
+                    continue
+                else:
+                    print("Error: Se esperaba ';' tras el campo de Entity")
+                    parser.actualizar_token("ERROR", sep)
+                    parser.saltar_hasta_puntoycoma()
+                    continue
             else:
-                # ERROR 4: Se esperaba ',' o ';'
-                print(f"Error: Se esperaba ',' o ';' después de la variable '{nombre}'")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", simbolo)
-                return
+                print("Error: Se esperaba identificador tras tipo de campo en Entity")
+                parser.actualizar_token("ERROR", nombre_campo)
+                parser.saltar_hasta_puntoycoma()
+                continue
+        elif tipo == "TIPO_ENTERO" and valor == "Stack":
+            parser.avanzar()
+            tipo, nombre_campo = parser.token_actual_tipo_valor()
+            if tipo == "IDENTIFICADOR":
+                campos.append(("Stack", nombre_campo))
+                print(f"  Campo: Stack {nombre_campo}")
+                parser.avanzar()
+                tipo, sep = parser.token_actual_tipo_valor()
+                if tipo == "SIMBOLO" and sep == ";":
+                    parser.avanzar()
+                    continue
+                else:
+                    print("Error: Se esperaba ';' tras el campo de Entity")
+                    parser.actualizar_token("ERROR", sep)
+                    parser.saltar_hasta_puntoycoma()
+                    continue
+            else:
+                print("Error: Se esperaba identificador tras tipo de campo en Entity")
+                parser.actualizar_token("ERROR", nombre_campo)
+                parser.saltar_hasta_puntoycoma()
+                continue
+        elif tipo == "TIPO_BOOL" and valor == "Torch":
+            parser.avanzar()
+            tipo, nombre_campo = parser.token_actual_tipo_valor()
+            if tipo == "IDENTIFICADOR":
+                campos.append(("Torch", nombre_campo))
+                print(f"  Campo: Torch {nombre_campo}")
+                parser.avanzar()
+                tipo, sep = parser.token_actual_tipo_valor()
+                if tipo == "SIMBOLO" and sep == ";":
+                    parser.avanzar()
+                    continue
+                else:
+                    print("Error: Se esperaba ';' tras el campo de Entity")
+                    parser.actualizar_token("ERROR", sep)
+                    parser.saltar_hasta_puntoycoma()
+                    continue
+            else:
+                print("Error: Se esperaba identificador tras tipo de campo en Entity")
+                parser.actualizar_token("ERROR", nombre_campo)
+                parser.saltar_hasta_puntoycoma()
+                continue
+        else:
+            print("Error: Tipo de campo no válido en Entity")
+            parser.actualizar_token("ERROR", valor)
+            parser.saltar_hasta_puntoycoma()
+            continue
+  # Ahora procesar la variable del registro
+    tipo, nombre_var = parser.token_actual_tipo_valor()
+    if tipo != "IDENTIFICADOR":
+        print("Error: Se esperaba identificador de variable tras kill")
+        parser.actualizar_token("ERROR", nombre_var)
+        parser.avanzar()
+        return
+    parser.avanzar()
+
+    tipo, simbolo = parser.token_actual_tipo_valor()
+    if tipo == "OPERADOR" and simbolo == "=":
+        parser.avanzar()
+        tipo, valor = parser.token_actual_tipo_valor()
+        if tipo == "LITERAL_REGISTRO":
+            print(f"  Inicialización: {nombre_var} = {valor}")
+            parser.avanzar()
+            tipo, fin = parser.token_actual_tipo_valor()
+            if tipo == "SIMBOLO" and fin == ";":
+                print(f"  Declaración finalizada: Entity {nombre_var} = {valor}")
+                parser.avanzar()
+                validar_declaracion_entity(parser.tabla, nombre_var, inicializado=True, valor_inicializacion=valor)
+            else:
+                print("Error: Se esperaba ';' tras la inicialización de Entity")
+                parser.actualizar_token("ERROR", fin)
+                parser.saltar_hasta_puntoycoma()
+        else:
+            print("Error: Se esperaba literal de registro tras '=' en Entity")
+            parser.actualizar_token("ERROR", valor)
+            parser.saltar_hasta_puntoycoma()
+    elif tipo == "SIMBOLO" and simbolo == ";":
+        print(f"  Declaración finalizada: Entity {nombre_var} (sin inicialización)")
+        parser.avanzar()
+        validar_declaracion_entity(parser.tabla, nombre_var, inicializado=False)
+    else:
+        print("Error: Se esperaba '=' o ';' tras el nombre de variable Entity")
+        parser.actualizar_token("ERROR", simbolo)
+        parser.saltar_hasta_puntoycoma()
+
+
+
+
+def procesar_dato_entity(parser):
+    # Alias para compatibilidad
+    procesar_entity(parser)

@@ -61,8 +61,11 @@ def seccion_tipos(parser, token, valor):
                 # Anvil recurso -> Stack 
                 tipo, fin = parser.token_actual_tipo_valor()
                 if tipo == "SIMBOLO" and fin == ";":
-                    tipo_base = tipo.replace("TIPO_", "")
+                    tipo_base = tipo_asignado  # <-- Usar el valor del tipo base real
                     parser.tipos_personalizados[nombre] = tipo_base
+                    # --- Usar validación semántica centralizada ---
+                    from moduloParser.validaciones_semanticas import validar_declaracion_tipos
+                    validar_declaracion_tipos(parser.tabla, nombre, tipo_base, True, None)
                     print(f"---- Asignación válida: {nombre} es de tipo {tipo_base}")
                     print(f"---------------------------------------------------------------")
                     parser.avanzar()
@@ -73,4 +76,4 @@ def seccion_tipos(parser, token, valor):
                     parser.avanzar()
                     continue
             else:
-                break  
+                break

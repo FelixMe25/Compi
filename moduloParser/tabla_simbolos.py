@@ -1,89 +1,112 @@
 class TablaSimbolos:
-    def __init__(self, ambito="global"):  # Añadido: ámbito
-        self.simbolos = {}
-        self.ambito = ambito  # "global" o el nombre de la función/bloque
-        self.padre = None  # Para tablas anidadas (ámbitos internos)
+    contador_codigo = 0  # contador global para asignar códigos únicos
+
+    def __init__(self, ambito=0):  # 0 = global, 1 = local
+        self.simbolos = []
+        self.ambito = ambito
+        self.padre = None
 
     def definir_ambito_padre(self, tabla_padre):
         self.padre = tabla_padre
 
+    def _generar_codigo(self):
+        codigo = TablaSimbolos.contador_codigo
+        TablaSimbolos.contador_codigo += 1
+        return codigo
+
     def agregar(self, nombre, tipo, clase="variable", inicializado=False, info=None):
-        if nombre in self.simbolos:
-            return False  # Ya declarado en este ámbito
-        self.simbolos[nombre] = {
-            "tipo": tipo,
-            "clase": clase,
-            "inicializado": inicializado,
-            "info": info  # Para información adicional (parámetros, etc.)
+        if any(sim["Nombre"] == nombre for sim in self.simbolos):
+            return False
+
+        nuevo = {
+            "Código": self._generar_codigo(),
+            "Nombre": nombre,
+            "Categoría": clase,
+            "Tipo": tipo,
+            "NumParam": -1,
+            "ListaDeParam": "null",
+            "Dirección": -1,
+            "Ámbito": self.ambito,
+            "Inicializado": inicializado,
+            "Info": info or {}
         }
+
+        if clase == "funcion":
+            parametros = info.get("parametros", []) if info else []
+            nuevo["NumParam"] = len(parametros)
+            nuevo["ListaDeParam"] = [p["tipo"] for p in parametros] if parametros else []
+
+        self.simbolos.append(nuevo)
         return True
 
     def existe(self, nombre, buscar_en_padre=False):
-        if nombre in self.simbolos:
+        if any(sim["Nombre"] == nombre for sim in self.simbolos):
             return True
         if buscar_en_padre and self.padre:
-            return self.padre.existe(nombre, buscar_en_padre)  # Búsqueda recursiva
+            return self.padre.existe(nombre, buscar_en_padre)
         return False
 
     def obtener(self, nombre, buscar_en_padre=False):
-        if nombre in self.simbolos:
-            return self.simbolos[nombre]
+        for sim in self.simbolos:
+            if sim["Nombre"] == nombre:
+                return sim
         if buscar_en_padre and self.padre:
             return self.padre.obtener(nombre, buscar_en_padre)
         return None
 
-    def marcar_inicializado(self, nombre):
-        if self.existe(nombre, buscar_en_padre=True):  # Buscar en ámbitos superiores
-            simbolo = self.obtener(nombre, buscar_en_padre=True)
-            simbolo["inicializado"] = True
-
     def mostrar(self):
-        print(f"Diccionario Semántico - Ámbito: {self.ambito}")
-        for nombre, datos in self.simbolos.items():
-            tipo = datos["tipo"]
-            clase = datos["clase"]
-            inicializado = datos["inicializado"]
-            info = datos["info"]
-            print(f"  {nombre:<15} | Tipo: {tipo:<10} | Clase: {clase:<10} | Inicializado: {inicializado} | Info: {info}")
-        
+        print(f"\n📘 TABLA DE SÍMBOLOS - Ámbito {'Global' if self.ambito == 0 else 'Local'}")
+        print("=" * 130)
+        encabezado = ["Código", "Nombre", "Categoría", "Tipo", "NumParam", "ListaDeParam", "Dirección", "Ámbito", "Inicializado", "Info"]
+        print(" | ".join(f"{h:<14}" for h in encabezado))
+        print("-" * 130)
+        for sim in self.simbolos:
+            fila = [sim.get("Código"),
+                    sim.get("Nombre"),
+                    sim.get("Categoría"),
+                    sim.get("Tipo"),
+                    sim.get("NumParam"),
+                    sim.get("ListaDeParam"),
+                    sim.get("Dirección"),
+                    sim.get("Ámbito"),
+                    sim.get("Inicializado"),
+                    self._formatear_info(sim.get("Info"))]
+            print(" | ".join(f"{str(val):<14}" for val in fila))
+        print("=" * 130)
         if self.padre:
             print("↪ Ámbito Padre:")
-            self.padre.mostrar_semantico()
+            self.padre.mostrar()
 
-
-    # --- Nuevas Funcionalidades ---
+    def _formatear_info(self, info):
+        if not info:
+            return "null"
+        return ", ".join(f"{k}={v}" for k, v in info.items())
 
     def agregar_parametro(self, nombre_funcion, nombre_parametro, tipo_parametro):
-        if nombre_funcion not in self.simbolos:
-            return False  # Función no existe
-        if self.simbolos[nombre_funcion]["clase"] != "funcion":
-            return False  # No es una función
-        if "parametros" not in self.simbolos[nombre_funcion]["info"]:
-            self.simbolos[nombre_funcion]["info"]["parametros"] = []
-        self.simbolos[nombre_funcion]["info"]["parametros"].append({
-            "nombre": nombre_parametro,
-            "tipo": tipo_parametro
-        })
+        funcion = self.obtener(nombre_funcion)
+        if not funcion or funcion["Categoría"] != "funcion":
+            return False
+        if funcion["ListaDeParam"] == "null":
+            funcion["ListaDeParam"] = []
+        funcion["ListaDeParam"].append(tipo_parametro)
+        funcion["NumParam"] = len(funcion["ListaDeParam"])
         return True
 
     def obtener_parametros(self, nombre_funcion):
-        if self.existe(nombre_funcion, buscar_en_padre=True):
-            simbolo = self.obtener(nombre_funcion, buscar_en_padre=True)
-            if simbolo and simbolo["clase"] == "funcion" and "parametros" in simbolo["info"]:
-                return simbolo["info"]["parametros"]
+        simbolo = self.obtener(nombre_funcion, buscar_en_padre=True)
+        if simbolo and simbolo["Categoría"] == "funcion":
+            return simbolo.get("ListaDeParam", [])
         return []
 
     def agregar_tipo_retorno(self, nombre_funcion, tipo_retorno):
-        if nombre_funcion not in self.simbolos:
-            return False
-        if self.simbolos[nombre_funcion]["clase"] != "funcion":
-            return False
-        self.simbolos[nombre_funcion]["info"]["tipo_retorno"] = tipo_retorno
-        return True
+        simbolo = self.obtener(nombre_funcion)
+        if simbolo and simbolo["Categoría"] == "funcion":
+            simbolo["Tipo"] = tipo_retorno
+            return True
+        return False
 
     def obtener_tipo_retorno(self, nombre_funcion):
-        if self.existe(nombre_funcion, buscar_en_padre=True):
-            simbolo = self.obtener(nombre_funcion, buscar_en_padre=True)
-            if simbolo and simbolo["clase"] == "funcion" and "tipo_retorno" in simbolo["info"]:
-                return simbolo["info"]["tipo_retorno"]
+        simbolo = self.obtener(nombre_funcion, buscar_en_padre=True)
+        if simbolo and simbolo["Categoría"] == "funcion":
+            return simbolo["Tipo"]
         return None

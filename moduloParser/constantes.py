@@ -10,13 +10,16 @@ from moduloParser.validaciones_semanticas import validar_declaracion_constante
 #----------------------------------------------------------------------------
 
 def seccion_constante(parser, token, valor):
-    print(f"➡ Sección de constantes iniciada con: {valor}")
+    print(f"'\n╔════════════════════════════════════════════════════════════════════╗")
+    print(f"            SECCIÓN DE CONSTANTES iniciada con: {valor:<35}          ")
+    print(f"╚════════════════════════════════════════════════════════════════════╝")
     parser.avanzar()
     while not parser.fin():
         tipo, valor = parser.token_actual_tipo_valor()
         if tipo == "ASIGNACION_CONSTANTE" and valor == "Obsidian":
-            print(f"-----------------------------------------------------------------------")
-            print(f"---- Asignación de constantes Obsidian encontrada")
+            print(f"\n┌────────────────────────────────────────────────────────────────┐")
+            print(f"│          Asignación de constantes: Obsidian encontrada         │")
+            print(f"└────────────────────────────────────────────────────────────────┘")
             parser.avanzar()
 
             # Error 1: No hay tipo de dato después de 'Obsidian' o tipo inválido
@@ -29,7 +32,7 @@ def seccion_constante(parser, token, valor):
                 )
             if tipo_token not in tipos_validos:
                 print(f"Error: Se esperaba un tipo válido después de Obsidian, pero se encontró ({tipo_token}, '{tipo_valor}')")
-                print(f"-----------------------------------------------------------------------")
+                print(f"{'─'*70}")
                 parser.actualizar_token("ERROR", tipo_valor)
                 return
 
@@ -64,7 +67,7 @@ def seccion_constante(parser, token, valor):
 
             if tipo not in literales_validos.get(tipo_base, []):
                 print(f"Error: El valor '{valor}' no es válido para el tipo {tipo_dato}")
-                print(f"---------------------------------------------------------------")
+                print(f"{'─'*70}")
                 parser.actualizar_token("ERROR", valor)
                 return
 
@@ -75,21 +78,20 @@ def seccion_constante(parser, token, valor):
             # Obsidian Stack monedas 100
             tipo, valor = parser.token_actual_tipo_valor()
             if tipo == "SIMBOLO" and valor == ";":
-                print(f"---- Declaración válida: Obsidian {tipo_dato} {nombre} {valor_literal}")
-                print(f"-----------------------------------------------------------------------")
+                print(f"Declaración válida: Obsidian {tipo_dato} {nombre} {valor_literal}")
 
                 # Validación Semántica
                 tabla_simbolos = parser.tabla
                 if not validar_declaracion_constante(tabla_simbolos, nombre, tipo_dato, True, valor_literal):
                     parser.actualizar_token("ERROR", nombre)
-                    return
+                    continue
                 
                 parser.avanzar()
                 continue
 
             else:
                 print("Error: Se esperaba ';' al final de la declaración.")
-                print(f"-------------------------------------------------")
+                print(f"{'─'*70}")
                 parser.actualizar_token("ERROR", valor)
                 return
         else:

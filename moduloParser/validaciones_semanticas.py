@@ -66,6 +66,19 @@ def validar_variable_shelf(tabla_simbolos, nombre, tipo_base, valor):
     print(f"---- Arreglo Shelf '{nombre}' de tipo '{tipo_base}' declarado correctamente.")
     return True
 
+def validar_declaracion_entity(tabla_simbolos, nombre_variable, inicializado=False, valor_inicializacion=None):
+    if tabla_simbolos.existe(nombre_variable):
+        print(f"Error semántico: La variable Entity '{nombre_variable}' ya ha sido declarada.")
+        return False
+    tabla_simbolos.agregar(nombre_variable,
+                           "Entity",
+                           clase="variable",
+                           inicializado=inicializado,
+                           info={"valor_inicializacion": valor_inicializacion})
+    print(f"---- Entity '{nombre_variable}' declarada correctamente.")
+    return True
+
+
 #------------------------------------
 # SECCION DE TIPOS
 #-----------------------------------

@@ -1,4 +1,5 @@
-#----------------------------------------------------------------------------
+from moduloParser.validaciones_semanticas import validar_llamada_funcion
+# -------------------------------------------------------------------
 #                   ENCABEZADO DE FUNCIONES Y PROCEDIMIENTO 
 #----------------------------------------------------------------------------
 def procesar_funcion_o_procedimiento(parser):
@@ -40,7 +41,8 @@ def procesar_funcion_o_procedimiento(parser):
             while not parser.fin():
                 tipo, valor = parser.token_actual_tipo_valor()
 
-                if not tipo.startswith("TIPO_"):
+                # Permitir tipos personalizados como parámetros
+                if not tipo.startswith("TIPO_") and tipo not in parser.tipos_personalizados:
                     print(f"Error: Se esperaba un tipo de dato, pero se encontró: {valor}")
                     print(f"-----------------------------------------------------------------------")
                     parser.actualizar_token("ERROR", valor)
@@ -199,6 +201,11 @@ def seccion_prototipo(parser, token, valor):
                 tipo, simbolo = parser.token_actual_tipo_valor()
                 if tipo == "SIMBOLO" and simbolo == ";":
                     print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina} ({tipo_param} :: {nombre_param});\n")
+                    parametros = [{"nombre": nombre_param, "tipo": tipo_param}]
+                    # Para Spell, tipo_retorno es None
+                    info = {"parametros": parametros, "tipo_retorno": None}
+                    validar_nombre_unico_global(parser.tabla, nombre_rutina)
+                    parser.tabla.agregar(nombre_rutina, tipo_rutina, clase="funcion", inicializado=True, info=info)
                     parser.avanzar()
                 else:
                     print(" Error: Se esperaba ';' al final del prototipo de función")
@@ -217,7 +224,9 @@ def seccion_prototipo(parser, token, valor):
                 parser.avanzar()
 
                 tipo, tipo_retorno = parser.token_actual_tipo_valor()
-                if not tipo.startswith("TIPO_") and tipo not in parser.tipos_personalizados:
+                # Traducir tipo personalizado a tipo base si existe
+                tipo_retorno_base = parser.tipos_personalizados.get(tipo_retorno, tipo_retorno)
+                if not tipo.startswith("TIPO_") and tipo_retorno not in parser.tipos_personalizados:
                     print(f"Error: Tipo de retorno inválido: {tipo_retorno}")
                     print(f"-----------------------------------------------------------------------")
                     parser.actualizar_token("ERROR", tipo_retorno)
@@ -227,6 +236,11 @@ def seccion_prototipo(parser, token, valor):
                 tipo, simbolo = parser.token_actual_tipo_valor()
                 if tipo == "SIMBOLO" and simbolo == ";":
                     print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina} ({tipo_param} :: {nombre_param}) -> {tipo_retorno};\n")
+                    parametros = [{"nombre": nombre_param, "tipo": tipo_param}]
+                    info = {"parametros": parametros, "tipo_retorno": tipo_retorno_base}
+                    from moduloParser.validaciones_semanticas import validar_nombre_unico_global
+                    validar_nombre_unico_global(parser.tabla, nombre_rutina)
+                    parser.tabla.agregar(nombre_rutina, tipo_rutina, clase="funcion", inicializado=True, info=info)
                     parser.avanzar()
                 else:
                     print("Error: Se esperaba ';' al final del prototipo de procedimiento")
