@@ -76,4 +76,4 @@ def seccion_tipos(parser, token, valor):
                     parser.avanzar()
                     continue
             else:
-                break
+                parser.avanzar()  # <-- Avanzar para evitar quedarse pegado
