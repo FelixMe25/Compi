@@ -9,7 +9,8 @@ from moduloParser.validaciones_semanticas import (validar_operacion_entera,
                                                   validar_operacion_caracter,
                                                   validar_operacion_logica,
                                                   validar_operacion_chest,
-                                                  validar_operacion_archivo
+                                                  validar_operacion_archivo,
+                                                  validar_operacion_flotante
                                                   )
 
 # ------------------------------------------------------------------------------
@@ -732,12 +733,20 @@ def procesar_consulta_chest(parser):
 # ------------------------------------------------------------------------------
 def procesar_operacion_archivo(parser):
     tipo, operacion = parser.token_actual_tipo_valor()
-    if tipo not in ["ABRIR_ARCHIVO", "CERRAR_ARCHIVO", "CREAR_ARCHIVO"]:
+    # Mapeo de tokens a nombres de operación semántica
+    op_map = {
+        "ABRIR_ARCHIVO": "make",
+        "CERRAR_ARCHIVO": "lock",  # O unlock, según tu semántica
+        "CREAR_ARCHIVO": "unlock"   # Ajusta si tu semántica es diferente
+    }
+    if tipo not in op_map:
         print(f"Error: Operación de archivo inválida: '{operacion}'")
         print(f"-----------------------------------------------------------------------")
         parser.actualizar_token("ERROR", operacion)
         parser.saltar_hasta_puntoycoma()
         return
+
+    op_validacion = op_map[tipo]
 
     parser.avanzar()
     tipo, archivo = parser.token_actual_tipo_valor()
@@ -759,12 +768,13 @@ def procesar_operacion_archivo(parser):
     
     # ---------- Validación Semántica -------------------
     print("--------- VALIDACION SEMANTICA ----------------- ")
-    if not validar_operacion_archivo(parser.tabla, operacion, archivo):
+    if not validar_operacion_archivo(parser.tabla, op_validacion, archivo):
         parser.actualizar_token("ERROR", archivo)
+        parser.saltar_hasta_puntoycoma()
         return
 
     parser.avanzar()
-    print(f"---- Operación archivo: {operacion} {archivo};")
+    print(f"---- Operación archivo: {op_validacion} {archivo};")
     print(f"-----------------------------------------------------------------------")
 
 # ------------------------------------------------------------------------------
@@ -930,6 +940,11 @@ def _procesar_operaciones_ghast(parser):
         parser.saltar_hasta_puntoycoma()
         return
 
+    # Validación semántica flotante
+    if not validar_operacion_flotante(parser.tabla, destino, op, izq, der):
+        parser.actualizar_token("ERROR", destino)
+        return
+
     parser.avanzar()
     print(f"---- Operación Ghast válida: {destino} = {izq} {op} {der};")
     print(f"-----------------------------------------------------------------------")
@@ -1000,3 +1015,80 @@ def procesar_entity_en_inventory(parser):
                 print("Error: Falta ';' luego de kill <nombre>")
                 print(f"-----------------------------------------------------------------------")
                 parser.actualizar_token("ERROR", simb)
+
+# ------------------------------------------------------------------------------
+# ACCESO A ARREGLOS
+# ------------------------------------------------------------------------------
+def procesar_acceso_arreglo(parser):
+    # destino = arreglo[indice];
+    tipo, destino = parser.token_actual_tipo_valor()
+    if tipo != "IDENTIFICADOR":
+        print("Error: Se esperaba un identificador como destino del acceso al arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", destino)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
+    tipo, igual = parser.token_actual_tipo_valor()
+    if tipo != "OPERADOR" or igual != "=":
+        print("Error: Se esperaba '=' en la asignación de acceso a arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", igual)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
+    tipo, arreglo = parser.token_actual_tipo_valor()
+    if tipo != "IDENTIFICADOR":
+        print("Error: Se esperaba el identificador del arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", arreglo)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
+    tipo, corchete_izq = parser.token_actual_tipo_valor()
+    if tipo != "SIMBOLO" or corchete_izq != "[":
+        print("Error: Se esperaba '[' para acceso a arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", corchete_izq)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
+    tipo, indice = parser.token_actual_tipo_valor()
+    if tipo not in ["LITERAL_ENTERO", "IDENTIFICADOR"]:
+        print("Error: Se esperaba un índice entero o variable de tipo entero para el acceso al arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", indice)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
+    tipo, corchete_der = parser.token_actual_tipo_valor()
+    if tipo != "SIMBOLO" or corchete_der != "]":
+        print("Error: Se esperaba ']' para cerrar el acceso al arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", corchete_der)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
+    tipo, fin = parser.token_actual_tipo_valor()
+    if tipo != "SIMBOLO" or fin != ";":
+        print("Error: Se esperaba ';' al final del acceso al arreglo.")
+        print(f"-----------------------------------------------------------------------")
+        parser.actualizar_token("ERROR", fin)
+        parser.saltar_hasta_puntoycoma()
+        return
+
+    # Validación semántica
+    from moduloParser.validaciones_semanticas import validar_acceso_arreglo
+    if not validar_acceso_arreglo(parser.tabla, destino, arreglo, indice):
+        parser.actualizar_token("ERROR", arreglo)
+        return
+
+    parser.avanzar()
+    print(f"---- Acceso a arreglo válido: {destino} = {arreglo}[{indice}];")
+    print(f"-----------------------------------------------------------------------")

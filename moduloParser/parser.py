@@ -498,6 +498,10 @@ class Parser:
                 self.avanzar()
                 return
 
+            # Mostrar la tabla de símbolos después de cada instrucción
+            self.tabla.mostrar()
+            self.avanzar()
+
             # Asignación compuesta tipo: gold += 5;
             tipo_sig1, val_sig1 = self.tokens[self.current + 1] if self.current + 1 < len(self.tokens) else (None, None)
             tipo_sig2, val_sig2 = self.tokens[self.current + 2] if self.current + 2 < len(self.tokens) else (None, None)
@@ -509,7 +513,6 @@ class Parser:
                 else:
                     print(f"Error: Se esperaba un valor válido después de '{val_sig1}' en asignación compuesta.")
                     print(f"-----------------------------------------------------------------------")
-                    self.avanzar()
                     continue
 
             # Operaciones estándar con "="
@@ -608,7 +611,9 @@ class Parser:
             if tipo_actual in ["LITERAL_CHAR", "OPERADOR_VACIO"]:
                 procesar_consulta_chest(self)
                 continue
-            # self.tabla.mostrar()
+
+            # Si no se procesó ninguna instrucción especial, mostrar la tabla y avanzar
+            self.tabla.mostrar()
             self.avanzar()
                 
             
@@ -618,4 +623,4 @@ class Parser:
         print("--- Programa cerrado correctamente con 'worldSave'.\n")
         print(f"-----------------------------------------------------------------------")
         self.avanzar()
-        
+

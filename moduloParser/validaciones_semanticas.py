@@ -1,4 +1,11 @@
-# ------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# validaciones_semanticas.py
+# Funciones y utilidades para la validación semántica del lenguaje.
+# Incluye normalización de tipos, verificación de operaciones, validación de
+# declaraciones, asignaciones, operaciones aritméticas, acceso a arreglos,
+# acceso a registros, y comprobaciones de condiciones y conversiones de tipos.
+# ------------------------------------------------------------------------------
+# --------------------------------- inicio
 # Utilidades Generales
 # ------------------------------------------------------------
 def normalizar_tipo(tipo_raw):
@@ -15,7 +22,8 @@ def normalizar_tipo(tipo_raw):
         "SPIDER": "Spider",
         "GHAST": "Ghast",
         "TORCH": "Torch",  
-        "CHEST": "Chest"
+        "CHEST": "Chest",
+        "ARCHIVO": "Book"
     }
     if not tipo_raw:
         return None
@@ -645,3 +653,51 @@ def validar_condicion_general(tabla_simbolos, estructura):
 
     print("Error: Tipo de estructura de condición no reconocido.")
     return False
+
+# -----------------------------------
+# VALIDACION DE ACCESO A ARREGLOS (SHELF)
+# -----------------------------------
+def validar_acceso_arreglo(tabla_simbolos, destino, arreglo, indice):
+    simbolo_arreglo = tabla_simbolos.obtener(arreglo, buscar_en_padre=True)
+    if not simbolo_arreglo or not simbolo_arreglo["info"].get("es_arreglo_shelf", False):
+        print(f"Error semántico: '{arreglo}' no es un arreglo Shelf declarado.")
+        return False
+
+    tipo_indice = verificar_tipo_operando(tabla_simbolos, indice)
+    if tipo_indice != "Stack":
+        print(f"Error semántico: El índice de acceso debe ser de tipo 'Stack' (entero). Se recibió '{tipo_indice}'.")
+        return False
+
+    simbolo_destino = tabla_simbolos.obtener(destino, buscar_en_padre=True)
+    tipo_base = simbolo_arreglo["info"].get("tipo_base_shelf")
+    if not simbolo_destino or normalizar_tipo(simbolo_destino.get("Tipo")) != normalizar_tipo(tipo_base):
+        print(f"Error semántico: El resultado del acceso debe asignarse a una variable de tipo '{tipo_base}'.")
+        return False
+
+    print(f" Validación Semántica -> Acceso Shelf válido: {arreglo}[{indice}] → {destino}")
+    return True
+
+# -----------------------------------
+# VALIDACION DE ACCESO A REGISTROS (ENTITY)
+# -----------------------------------
+def validar_acceso_registro(tabla_simbolos, destino, registro, campo):
+    simbolo_registro = tabla_simbolos.obtener(registro, buscar_en_padre=True)
+    if not simbolo_registro or normalizar_tipo(simbolo_registro.get("Tipo")) != "Entity":
+        print(f"Error semántico: '{registro}' no es un registro Entity declarado.")
+        return False
+
+    # Verificar que el campo exista en la definición del registro
+    campos_entity = simbolo_registro["info"].get("campos", [])
+    if campo not in campos_entity:
+        print(f"Error semántico: El campo '{campo}' no existe en el registro '{registro}'.")
+        return False
+
+    # Verificar tipo de destino (opcional, si tienes tipos por campo)
+    # tipo_campo = ...
+    # simbolo_destino = tabla_simbolos.obtener(destino, buscar_en_padre=True)
+    # if not simbolo_destino or normalizar_tipo(simbolo_destino.get("Tipo")) != tipo_campo:
+    #     print(f"Error semántico: El resultado debe asignarse a una variable de tipo '{tipo_campo}'.")
+    #     return False
+
+    print(f" Validación Semántica -> Acceso Entity válido: {registro}@{campo} → {destino}")
+    return True
