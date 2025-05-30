@@ -608,7 +608,7 @@ class Parser:
             if tipo_actual in ["LITERAL_CHAR", "OPERADOR_VACIO"]:
                 procesar_consulta_chest(self)
                 continue
-            self.tabla.mostrar()
+            # self.tabla.mostrar()
             self.avanzar()
                 
             

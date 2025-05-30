@@ -5,7 +5,11 @@ from moduloParser.validaciones_semanticas import (validar_operacion_entera,
                                                   validar_concatenacion_spider,
                                                   validar_seek_spider,
                                                   validar_corte_spider,
-                                                  validar_recorte_spider
+                                                  validar_recorte_spider, 
+                                                  validar_operacion_caracter,
+                                                  validar_operacion_logica,
+                                                  validar_operacion_chest,
+                                                  validar_operacion_archivo
                                                   )
 
 # ------------------------------------------------------------------------------
@@ -271,6 +275,12 @@ def procesar_operacion_rune(parser):
             parser.actualizar_token("ERROR", simbolo)
             parser.saltar_hasta_puntoycoma()
             return
+        
+        # Validación semántica
+        if not validar_operacion_caracter(parser.tabla, destino, operacion, argumento):
+            parser.actualizar_token("ERROR", argumento)
+            parser.saltar_hasta_puntoycoma()
+            return
 
         parser.avanzar()
         print(f"---- Operación Rune detectada: {destino} = {operacion} {argumento};")
@@ -320,7 +330,7 @@ def procesar_operacion_torch(parser):
                 parser.saltar_hasta_puntoycoma()
                 return
             parser.avanzar()
-
+            
         # Caso directo: A and B, A or B, A xor B
         else:
             _validar_operacion_booleana(interno=False)
@@ -541,14 +551,31 @@ def _validar_operacion_booleana(parser, interno=False):
         parser.avanzar()
 
         # segundo operando
-        tipo, val = parser.token_actual_tipo_valor()
+        tipo, val2 = parser.token_actual_tipo_valor()
         if tipo not in ["IDENTIFICADOR", "LITERAL_BOOL"]:
-            print(f" Error: Se esperaba literal booleano o identificador, pero se obtuvo '{val}'.")
+            print(f" Error: Se esperaba literal booleano o identificador, pero se obtuvo '{val2}'.")
             print(f"-----------------------------------------------------------------------")
+            parser.actualizar_token("ERROR", val2)
+            parser.saltar_hasta_puntoycoma()
+            return
+        parser.avanzar()
+        
+        # ---- Validaciones Semánticas -------
+
+        # ---- NOT -----------
+        if not validar_operacion_logica(parser.tabla, val, "not"):
             parser.actualizar_token("ERROR", val)
             parser.saltar_hasta_puntoycoma()
             return
         parser.avanzar()
+
+        # ---- OPERACIONES AND, OR, XOR -----------------
+        if not validar_operacion_logica(parser.tabla, val, op, val2):
+            parser.actualizar_token("ERROR", op)
+            parser.saltar_hasta_puntoycoma()
+            return
+        parser.avanzar()
+
 
 # ------------------------------------------------------------------------------
 # OPERACIONES DE TIPO CONJUNTO
@@ -617,7 +644,12 @@ def procesar_operacion_chest(parser):
             parser.saltar_hasta_puntoycoma()
             return
 
+    # Validación Semántica
+    if not validar_operacion_chest(parser.tabla, operador, origen, argumento):
+        parser.actualizar_token("ERROR", operador)
+        return
     parser.avanzar()
+
     print(f"---- Operación Chest: {destino} = {origen} {operador} {argumento};")
     print(f"-----------------------------------------------------------------------")
 
@@ -630,6 +662,7 @@ def procesar_consulta_chest(parser):
     if tipo == "LITERAL_CHAR":
         parser.avanzar()
         tipo, operador = parser.token_actual_tipo_valor()
+        
         if tipo != "OPERADOR_BIOM":
             print("Error: Se esperaba 'biom' después del carácter.")
             print(f"-----------------------------------------------------------------------")
@@ -656,8 +689,13 @@ def procesar_consulta_chest(parser):
             parser.saltar_hasta_puntoycoma()
             return
         
+        # Validación Semántica
+        if not validar_operacion_chest(parser.tabla, operador, valor, conjunto):
+            parser.actualizar_token("ERROR", operador)
+            return
+        
         parser.avanzar()
-        print(f"---- Consulta Chest: '{valor}' biom {conjunto};")
+        print(f"---- Consulta Chest: {valor} biom {conjunto};")
         print(f"-----------------------------------------------------------------------")
         return
 
@@ -680,10 +718,15 @@ def procesar_consulta_chest(parser):
             parser.saltar_hasta_puntoycoma()
             return
         
+        # Validación Semántica
+        if not validar_operacion_chest(parser.tabla, "void", conjunto, None):
+            parser.actualizar_token("ERROR", "void")
+            return
+        
         parser.avanzar()
         print(f"✔ Consulta Chest: void {conjunto};")
         return
-
+    
 # ----------------------------------------------------------------------------
 # OPERACIONES SOBRE TIPO DE DATO ARCHIVO
 # ------------------------------------------------------------------------------
@@ -712,6 +755,12 @@ def procesar_operacion_archivo(parser):
         print(f"-----------------------------------------------------------------------")
         parser.actualizar_token("ERROR", simbolo)
         parser.saltar_hasta_puntoycoma()
+        return
+    
+    # ---------- Validación Semántica -------------------
+    print("--------- VALIDACION SEMANTICA ----------------- ")
+    if not validar_operacion_archivo(parser.tabla, operacion, archivo):
+        parser.actualizar_token("ERROR", archivo)
         return
 
     parser.avanzar()
@@ -767,6 +816,11 @@ def procesar_asignacion_archivo(parser):
         parser.actualizar_token("ERROR", fin)
         parser.saltar_hasta_puntoycoma()
         return
+    
+    # ---------- Validación Semántica -------------------
+    if not validar_operacion_archivo(parser.tabla, op, destino, archivo):
+        parser.actualizar_token("ERROR", archivo)
+        return
 
     parser.avanzar()
     print(f"---- Lectura desde archivo: {destino} = gather {archivo};")
@@ -811,6 +865,13 @@ def procesar_escritura_archivo(parser):
         print("Error: Falta ';' al final de forge.")
         print(f"-----------------------------------------------------------------------")
         parser.actualizar_token("ERROR", fin)
+        parser.saltar_hasta_puntoycoma()
+        return
+    
+    # ---------- Validación Semántica -------------------
+    print("--------- VALIDACION SEMANTICA ----------------- ")
+    if not validar_operacion_archivo(parser.tabla, operacion, archivo, contenido):
+        parser.actualizar_token("ERROR", archivo)
         parser.saltar_hasta_puntoycoma()
         return
 

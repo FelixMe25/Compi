@@ -1,3 +1,9 @@
+from moduloParser.validaciones_semanticas import (validar_operacion_relacional, 
+                                                  validar_condicion_booleana, 
+                                                  validar_switch,
+                                                  validar_operacion_logica
+                                                  )
+
 #----------------------------------------------------------------------------
 #                MANEJO DE BLOQUES DE MAS DE UNA INSTRUCCION
 #----------------------------------------------------------------------------
@@ -74,6 +80,13 @@ def procesar_repeater(parser):
         return
     parser.avanzar()
 
+    # Validación Semántica
+    if not validar_operacion_relacional(parser.tabla, izq, operador, der):
+        parser.actualizar_token("ERROR", operador)
+        parser.saltar_hasta_puntoycoma()
+        return
+    parser.avanzar()
+
     # ---------------------------
     # Validar palabra clave craft
     # ---------------------------
@@ -145,6 +158,23 @@ def procesar_target(parser):
         return
     parser.avanzar()
 
+    # ------------- Validación Semántica ---------------------
+    # Detectar si hay una operación lógica (e.g., not var, var1 and var2)
+    if operador in ["and", "or", "xor"]:
+        if not validar_operacion_logica(parser.tabla, izq, operador, der):
+            parser.actualizar_token("ERROR", operador)
+            return
+    elif operador == "not":
+        if not validar_operacion_logica(parser.tabla, der, operador):
+            parser.actualizar_token("ERROR", operador)
+            return
+    else:
+        # Asumimos que es una comparación relacional
+        if not validar_operacion_relacional(parser.tabla, izq, operador, der):
+            parser.actualizar_token("ERROR", operador)
+            return
+    parser.avanzar()
+
     tipo, palabra = parser.token_actual_tipo_valor()
     if tipo == "PALABRA_CRAFT":
         parser.avanzar()
@@ -194,6 +224,12 @@ def procesar_instruccion_switch(parser):
         parser.saltar_hasta_puntoycoma()
         return
     parser.avanzar()
+
+    # Validación Semántica
+    if not validar_switch(parser.tabla, condicion):
+        print(f"Error semántico: La condición de 'jukebox' debe ser de tipo 'Stack'. Se recibió '{tipo_cond}'.")
+        parser.actualizar_token("ERROR", condicion)
+        return
 
     # craft
     tipo, palabra = parser.token_actual_tipo_valor()
@@ -281,6 +317,12 @@ def procesar_spawner(parser):
             print(f"---- Condición de salida del spawner: {condicion}")
             print(f"-----------------------------------------------------------------------")
             parser.avanzar()
+          
+            # ----------- Validación Semántica -----------------
+            if not validar_condicion_booleana(parser.tabla, condicion):
+                parser.actualizar_token("ERROR", condicion)
+                return
+            
         else:
             print(" Error: Falta 'exhausted' en spawner")
             print(f"-----------------------------------------------------------------------")

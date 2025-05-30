@@ -7,12 +7,15 @@ def normalizar_tipo(tipo_raw):
         "ENTERO": "Stack",
         "CARACTER": "Rune",
         "FLOAT": "Ghast",
-        "BOOL": "Wither",
+        "BOOL": "Torch",  
         "FLOTANTE": "Ghast",
+        "CONJUNTO": "Chest",
         "STACK": "Stack",
         "RUNE": "Rune",
         "SPIDER": "Spider",
-        "GHAST": "Ghast"
+        "GHAST": "Ghast",
+        "TORCH": "Torch",  
+        "CHEST": "Chest"
     }
     if not tipo_raw:
         return None
@@ -24,12 +27,20 @@ def verificar_tipo_operando(tabla_simbolos, operando):
         return "Stack"
     elif isinstance(operando, float):
         return "Ghast"
-    elif isinstance(operando, str) and (
-        (operando.startswith('"') and operando.endswith('"')) or 
-        (operando.startswith("'") and operando.endswith("'"))
-    ):
-        return "Spider"
-    elif isinstance(operando, str):  # Identificador
+    elif isinstance(operando, str):
+        # Literal Rune: una sola letra entre comillas simples
+        if operando.startswith("'") and operando.endswith("'") and len(operando) == 3:
+            return "Rune"
+
+        # Literal Spider: cualquier texto entre comillas dobles
+        if operando.startswith('"') and operando.endswith('"'):
+            return "Spider"
+
+        # Literal Torch (booleano)
+        if operando in ["On", "Off"]:
+            return "Torch"
+
+        # Identificador
         simbolo = tabla_simbolos.obtener(operando, buscar_en_padre=True)
         if not simbolo:
             print(f"Error semántico: Variable '{operando}' no declarada.")
@@ -39,6 +50,7 @@ def verificar_tipo_operando(tabla_simbolos, operando):
             print(f"Error semántico: El símbolo '{operando}' no tiene campo 'Tipo'.")
             return None
         return normalizar_tipo(tipo_raw)
+
     return None
 
 #  ------------------------------- DECLARACIONES ----------------------------------------------------------------------
@@ -277,7 +289,6 @@ def validar_operacion_entera(tabla, destino, op, izq, der):
 
     return True
 
-
 # -----------------------------------
 # VALIDACION DE OPERACIONES FLOTANTES
 # -------------------------------------
@@ -299,15 +310,26 @@ def validar_operacion_flotante(tabla, destino, op, izq, der):
 def validar_operacion_caracter(tabla, destino, operador, operando):
     simbolo_dest = tabla.obtener(destino, buscar_en_padre=True)
     simbolo_op = tabla.obtener(operando, buscar_en_padre=True)
-    
-    if not simbolo_dest or simbolo_dest["tipo"] != "Rune":
-        print(f"Error: Destino '{destino}' debe ser 'Rune'.")
+
+    # Validar que el destino exista y sea de tipo Rune o Torch dependiendo del operador
+    if operador in ["isEngraved", "isInscribed"]:
+        tipo_esperado_destino = "Torch"
+    elif operador in ["etchUp", "etchDown"]:
+        tipo_esperado_destino = "Rune"
+    else:
+        print(f"Error: Operación '{operador}' no es válida para tipo Rune.")
         return False
-    
-    if not simbolo_op or simbolo_op["tipo"] != "Rune":
-        print(f"Error: Operando '{operando}' debe ser 'Rune'.")
+
+    if not simbolo_dest or normalizar_tipo(simbolo_dest["Tipo"]) != tipo_esperado_destino:
+        print(f"Error: El destino '{destino}' debe ser de tipo '{tipo_esperado_destino}' para la operación '{operador}'.")
         return False
-    # [REVISAR SI EL PARAMETRO 'OPERADOR' ES NECESARIO]
+
+    # Validar que el operando exista y sea de tipo Rune
+    if not simbolo_op or normalizar_tipo(simbolo_op["Tipo"]) != "Rune":
+        print(f"Error: El argumento '{operando}' debe ser de tipo 'Rune'.")
+        return False
+
+    print(f" Validación Semántica -> Operación Rune válida: {destino} = {operador} {operando}")
     return True
 
 # -----------------------------------
@@ -333,7 +355,7 @@ def validar_acceso_spider(tabla_simbolos, spider_nombre, indice, destino):
         print(f"Error semántico: El resultado del acceso debe asignarse a una variable de tipo 'Rune'.")
         return False
 
-    print(f"✔ Acceso Spider válido: {spider_nombre}[{indice}] → {destino}")
+    print(f" Validación Semántica -> Acceso Spider válido: {spider_nombre}[{indice}] → {destino}")
     return True
 
 #-----------------
@@ -351,7 +373,7 @@ def validar_concatenacion_spider(tabla_simbolos, destino, spider1, spider2):
         print(f"Error semántico: El resultado de 'bind' debe asignarse a una variable 'Spider'.")
         return False
 
-    print(f"✔ Concatenación Spider válida: {spider1} bind {spider2} → {destino}")
+    print(f" Validación Semántica -> Concatenación Spider válida: {spider1} bind {spider2} → {destino}")
     return True
 
 #-----------------
@@ -368,7 +390,7 @@ def validar_longitud_spider(tabla_simbolos, spider, destino):
         print(f"Error semántico: El resultado de '#' debe almacenarse en una variable 'Stack'.")
         return False
 
-    print(f"✔ Longitud Spider válida: # {spider} → {destino}")
+    print(f" Validación Semántica -> Longitud Spider válida: # {spider} → {destino}")
     return True
 
 #-----------------
@@ -385,7 +407,7 @@ def validar_corte_spider(tabla_simbolos, destino, spider, inicio, cantidad):
         print(f"Error semántico: El resultado del 'from ##' debe asignarse a una variable 'Spider'.")
         return False
 
-    print(f"✔ Corte Spider válido: {spider} from {inicio} ## {cantidad} → {destino}")
+    print(f" Validación Semántica -> Corte Spider válido: {spider} from {inicio} ## {cantidad} → {destino}")
     return True
 
 #-----------------
@@ -402,7 +424,7 @@ def validar_recorte_spider(tabla_simbolos, destino, spider, inicio, cantidad):
         print(f"Error semántico: El resultado del 'except ##' debe asignarse a una variable 'Spider'.")
         return False
 
-    print(f"✔ Recorte Spider válido: {spider} except {inicio} ## {cantidad} → {destino}")
+    print(f" Validación Semántica -> Recorte Spider válido: {spider} except {inicio} ## {cantidad} → {destino}")
     return True
 
 #-----------------
@@ -419,44 +441,73 @@ def validar_seek_spider(tabla_simbolos, destino, spider_base, spider_sub):
         print(f"Error semántico: El resultado de 'seek' debe asignarse a una variable 'Stack'.")
         return False
 
-    print(f"✔ Búsqueda Spider válida: {spider_base} seek {spider_sub} → {destino}")
-    return True
-
-# -----------------------------------
-# VALIDACION DE OPERACIONES LOGICAS
-# -------------------------------------
-def validar_operacion_logica(tabla_simbolos, izq, op, der):
-    tipo_izq = verificar_tipo_operando(tabla_simbolos, izq)
-    tipo_der = verificar_tipo_operando(tabla_simbolos, der)
-
-    if tipo_izq != "Wither" or tipo_der != "Wither":
-        print(f"Error: Operación lógica '{op}' requiere 'Wither'.")
-        return False
-    # [FALTA OPERACIONES LOGICAS/NECESITA MEJORAS]
+    print(f" Validación Semántica -> Búsqueda Spider válida: {spider_base} seek {spider_sub} → {destino}")
     return True
 
 # -----------------------------------------------
-# VALIDACION DE COMPATIBILIDAD ENTRE DOS DATOS
-# ----------------------------------------------
-def validar_operacion_relacional(tabla_simbolos, izq, op, der):
-    tipo_izq = verificar_tipo_operando(tabla_simbolos, izq)
-    tipo_der = verificar_tipo_operando(tabla_simbolos, der)
+# VALIDACION DE OPERACIONES LOGICAS - BOOLEANAS
+# -----------------------------------------------
+def validar_operacion_logica(tabla_simbolos, izq, op, der=None):
+    op = op.lower()
 
-    if tipo_izq != tipo_der or tipo_izq not in {"Stack", "Ghast", "Rune"}:
-        print(f"Error: Relacional entre tipos incompatibles '{tipo_izq}' y '{tipo_der}'.")
-        return False
-    # [REVISAR DONDE SE IMPLEMENTARÍA Y SI EL PARAMETRO 'OP' ES NECESARIO]
-    return True
+    # Operador unario: NOT
+    if op == "not":
+        tipo = verificar_tipo_operando(tabla_simbolos, izq)
+        if tipo != "Torch":
+            print(f"Error semántico: Operación lógica 'not' requiere un operando de tipo 'Torch'.")
+            return False
+        print(f" Validación Semántica -> Operación lógica válida utilizando '{izq}'.")
+        return True
+
+    # Operadores binarios: AND, OR, XOR
+    if op in ["and", "or", "xor"]:
+        tipo_izq = verificar_tipo_operando(tabla_simbolos, izq)
+        tipo_der = verificar_tipo_operando(tabla_simbolos, der)
+
+        if tipo_izq != "Torch" or tipo_der != "Torch":
+            print(f"Error semántico: Operación lógica '{op}' requiere operandos de tipo 'Torch'.")
+            return False
+        print(f" Validación Semántica -> Operación lógica válida utilizando '{izq}' y '{der}'.")
+        return True
+
+    # Operador no reconocido
+    print(f"Error semántico: Operador lógico desconocido '{op}'.")
+    return False
 
 # -----------------------------------
-# VALIDACION DE CONDICIONALES
+# VALIDACION DE OPERACIONES CONJUNTO
 # -------------------------------------
-def validar_condicion_booleana(tabla, condicion):
-    tipo = verificar_tipo_operando(tabla, condicion)
-    if tipo != "Wither":
-        print(f"Error: Condición debe ser tipo 'Wither', se recibió '{tipo}'.")
+def validar_operacion_chest(tabla_simbolos, operador, izq, der=None):
+    operador = operador.lower()
+
+    tipo_izq = verificar_tipo_operando(tabla_simbolos, izq)
+    tipo_der = verificar_tipo_operando(tabla_simbolos, der) if der else None
+
+    if operador == "add" or operador == "drop":
+        if tipo_izq != "Chest" or tipo_der != "Rune":
+            print(f"Error semántico: '{operador}' requiere 'Chest' a la izquierda y 'Rune' a la derecha.")
+            return False
+
+    elif operador == "feed" or operador == "map":
+        if tipo_izq != "Chest" or tipo_der != "Chest":
+            print(f"Error semántico: '{operador}' requiere dos operandos de tipo 'Chest'.")
+            return False
+
+    elif operador == "biom":
+        if tipo_izq != "Rune" or tipo_der != "Chest":
+            print("Error semántico: 'biom' requiere un 'Rune' a la izquierda y un 'Chest' a la derecha.")
+            return False
+
+    elif operador == "void":
+        if tipo_izq != "Chest":
+            print("Error semántico: 'void' requiere un único operando de tipo 'Chest'.")
+            return False
+
+    else:
+        print(f"Error semántico: Operación desconocida para Chest: '{operador}'.")
         return False
-    # [FALTA VALIDACIONES, REVISAR SI SE COMBINA CON LAS OPERACIONES LOGICAS Y RELACIONAL]
+
+    print(f" Validación Semántica -> Operación de conjunto válida: {izq} {operador} {der if der else ''}")
     return True
 
 # -----------------------------------
@@ -472,3 +523,113 @@ def validar_acceso_shelf_por_indice(tabla_simbolos, nombre, indice):
         return False
     return True
 
+# --------------------------------------
+# VALIDACION DE OPERACIONES DE ARCHIVOS
+# ---------------------------------------
+def validar_operacion_archivo(tabla_simbolos, operador, izq, der=None):
+    operador = operador.lower()
+    tipo_izq = verificar_tipo_operando(tabla_simbolos, izq)
+    tipo_der = verificar_tipo_operando(tabla_simbolos, der) if der else None
+
+    if operador == "make":
+        if tipo_izq != "Book":
+            print("Error semántico: 'make' requiere un operando de tipo 'Book'.")
+            return False
+
+    elif operador in ["unlock", "lock"]:
+        if tipo_izq != "Book":
+            print(f"Error semántico: '{operador}' requiere un operando de tipo 'Book'.")
+            return False
+
+    elif operador == "forge":
+        if tipo_izq != "Book" or tipo_der != "Spider":
+            print("Error semántico: 'forge' requiere un 'Book' y un 'Spider'.")
+            return False
+
+    elif operador == "gather":
+        if tipo_der != "Book":
+            print("Error semántico: 'gather' requiere un operando de tipo 'Book'.")
+            return False
+        if tipo_izq != "Spider":
+            print("Error semántico: El resultado de 'gather' debe asignarse a una variable 'Spider'.")
+            return False
+
+    else:
+        print(f"Error semántico: Operador desconocido de archivo: '{operador}'.")
+        return False
+
+    print(f" Validación Semántica -> Operación de archivo válida: {izq} {operador} {der if der else ''}")
+    return True
+
+# -----------------------------------
+# VALIDACION DE CONDICIONALES - CICLOS
+# -------------------------------------
+
+#----------------------
+# CONDICIONAL BOOLEANA
+# ------------------------
+def validar_condicion_booleana(tabla, condicion):
+    tipo = verificar_tipo_operando(tabla, condicion)
+    if tipo != "Torch":
+        print(f"Error: Condición debe ser de tipo 'Torch'. Se recibió '{tipo}'.")
+        return False
+    print(f" Validación Semántica -> Condicional Booleana '{condicion}' válida.")
+    return True
+
+#-------------------
+# OPERACION RELACIONAL
+# ---------------------
+def validar_operacion_relacional(tabla_simbolos, izq, operador, der):
+    tipo_izq = verificar_tipo_operando(tabla_simbolos, izq)
+    tipo_der = verificar_tipo_operando(tabla_simbolos, der)
+
+    operadores_validos = [">", "<", ">=", "<=", "is", "isNot"]
+
+    if operador not in operadores_validos:
+        print(f"Error: Operador relacional no válido: '{operador}'")
+        return False
+
+    # Compara operandos del mismo tipo (como en el lenguaje)
+    if tipo_izq != tipo_der:
+        print(f"Error: Tipos incompatibles en comparación relacional: '{tipo_izq}' y '{tipo_der}'.")
+        return False
+    
+    print(f" Validación Semántica -> Condicional Relacional con el operador '{operador}' válida.")
+    return True  # El resultado será tipo Torch, válido para condicionales
+
+# -----------------------
+#  CONDICIONAL SWITCH
+# ----------------------
+def validar_switch(tabla, condicion):
+    tipo_cond = verificar_tipo_operando(tabla, condicion)
+    if tipo_cond != "Stack":
+        print(f"Error semántico: La condición de 'jukebox' debe ser de tipo 'Stack'. Se recibió '{tipo_cond}'.")
+        return False
+    
+    print(f" Validación Semántica -> Condicional Switch '{condicion}' válida.")
+    return True
+
+ # --------------------
+ # CONDICIONAL GENERAL
+ # ---------------------
+def validar_condicion_general(tabla_simbolos, estructura):
+    """
+    estructura: dict con claves como:
+        - tipo: "literal", "variable", "logica", "relacional"
+        - datos: (izq, operador, der) según tipo
+    """
+    tipo = estructura.get("tipo")
+
+    if tipo == "literal" or tipo == "variable":
+        return validar_condicion_booleana(tabla_simbolos, estructura.get("datos"))
+
+    elif tipo == "logica":
+        izq, op, der = estructura.get("datos")
+        return validar_operacion_logica(tabla_simbolos, izq, op, der)
+
+    elif tipo == "relacional":
+        izq, op, der = estructura.get("datos")
+        return validar_operacion_relacional(tabla_simbolos, izq, op, der)
+
+    print("Error: Tipo de estructura de condición no reconocido.")
+    return False
