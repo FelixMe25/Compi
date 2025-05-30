@@ -39,6 +39,10 @@ def verificar_tipo_operando(tabla_simbolos, operando):
         # Literal Torch (booleano)
         if operando in ["On", "Off"]:
             return "Torch"
+        
+        # Literal de Enteros
+        if operando.isdigit():
+            return "Stack"
 
         # Identificador
         simbolo = tabla_simbolos.obtener(operando, buscar_en_padre=True)
@@ -397,12 +401,20 @@ def validar_longitud_spider(tabla_simbolos, spider, destino):
 # CORTAR
 # ------------------
 def validar_corte_spider(tabla_simbolos, destino, spider, inicio, cantidad):
+
     if verificar_tipo_operando(tabla_simbolos, spider) != "Spider":
         print(f"Error semántico: '{spider}' debe ser tipo 'Spider'.")
         return False
-    if verificar_tipo_operando(tabla_simbolos, inicio) != "Stack" or verificar_tipo_operando(tabla_simbolos, cantidad) != "Stack":
+    
+    num_inicio = verificar_tipo_operando(tabla_simbolos, inicio)
+    num_fin = verificar_tipo_operando(tabla_simbolos, cantidad)
+
+    print("INICIO - TIPO: ", num_inicio)
+    print(" FIN - TIPO: ", num_fin)
+    if  num_inicio != "Stack" or  num_fin != "Stack":
         print(f"Error semántico: Los índices 'from' y '##' deben ser de tipo 'Stack'.")
         return False
+    
     if verificar_tipo_operando(tabla_simbolos, destino) != "Spider":
         print(f"Error semántico: El resultado del 'from ##' debe asignarse a una variable 'Spider'.")
         return False

@@ -1,8 +1,9 @@
-WorldSave StringAccess:
+WorldName Dirt:
 Inventory
-    Spider game = "Minecraft";
-    Rune letter;
-
+    Stack dirtblocks = 0;
 SpawnPoint
-    letter = game[2];
+    spawner
+        dropperSpider("I need some dirt");
+        soulsand dirtblocks;
+    exhausted dirtblocks >= 64;
 worldSave
