@@ -1,6 +1,12 @@
-from moduloParser.validaciones_semanticas import validar_operacion_entera
-
-
+from moduloParser.validaciones_semanticas import (validar_operacion_entera, 
+                                                  validar_operacion_incremento_decremento,
+                                                  validar_longitud_spider,
+                                                  validar_acceso_spider,
+                                                  validar_concatenacion_spider,
+                                                  validar_seek_spider,
+                                                  validar_corte_spider,
+                                                  validar_recorte_spider
+                                                  )
 
 # ------------------------------------------------------------------------------
 # ASIGANACION COMPUESTA 
@@ -105,7 +111,14 @@ def _procesar_incremento_decremento(parser, operador, tipo_dato_esperado):
         return
 
     # Validación semántica
-    simbolo = parser.tabla.obtener(identificador, buscar_en_padre=True)
+    tabla_simbolo = parser.tabla
+    if not validar_operacion_incremento_decremento(tabla_simbolo, identificador, tipo_dato_esperado):
+        parser.actualizar_token("ERROR", identificador)
+        parser.saltar_hasta_puntoycoma()
+        
+
+    # simbolo = parser.tabla.obtener(identificador, buscar_en_padre=True)
+    """
     if not simbolo:
         print(f"Error semántico: Variable '{identificador}' no ha sido declarada.")
         parser.actualizar_token("ERROR", identificador)
@@ -116,6 +129,7 @@ def _procesar_incremento_decremento(parser, operador, tipo_dato_esperado):
         parser.actualizar_token("ERROR", identificador)
         parser.saltar_hasta_puntoycoma()
         return
+    """
 
     print(f"---- {operador} aplicado a: {identificador}")
     parser.avanzar()
@@ -366,6 +380,12 @@ def procesar_operacion_spider(parser):
             parser.saltar_hasta_puntoycoma()
             return
         parser.avanzar()
+
+        # Validación semántica 
+        if not validar_longitud_spider(parser.tabla, spider, destino):
+            parser.actualizar_token("ERROR", spider)
+            return
+        
         print(f"---- Operación Spider: {destino} = #{spider};")
         return
 
@@ -400,6 +420,12 @@ def procesar_operacion_spider(parser):
             parser.saltar_hasta_puntoycoma()
             return
         parser.avanzar()
+
+        # Validación semántica
+        if not validar_acceso_spider(parser.tabla, spider, index, destino):
+            parser.actualizar_token("ERROR", index)
+            return
+
         print(f"---- Operación Spider: {destino} = {spider}{index};")
         return
 
@@ -422,6 +448,17 @@ def procesar_operacion_spider(parser):
             parser.saltar_hasta_puntoycoma()
             return
         parser.avanzar()
+
+        # Validación semántica
+        if op == "bind":
+            if not validar_concatenacion_spider(parser.tabla, destino, spider, argumento):
+                parser.actualizar_token("ERROR", argumento)
+                return
+        elif op == "seek":
+            if not validar_seek_spider(parser.tabla, destino, spider, argumento):
+                parser.actualizar_token("ERROR", argumento)
+                return
+
         print(f"---- Operación Spider: {destino} = {spider} {op} {argumento};")
         return
 
@@ -460,6 +497,17 @@ def procesar_operacion_spider(parser):
                 parser.saltar_hasta_puntoycoma()
                 return
         parser.avanzar()
+
+        # Validación semántica
+        if op == "from":
+            if not validar_corte_spider(parser.tabla, destino, spider, inicio, cantidad):
+                parser.actualizar_token("ERROR", cantidad)
+                return
+        elif op == "except":
+            if not validar_recorte_spider(parser.tabla, destino, spider, inicio, cantidad):
+                parser.actualizar_token("ERROR", cantidad)
+                return
+            
         print(f"---- Operación Spider: {destino} = {spider} {op} {inicio} ## {cantidad};")
         return
 

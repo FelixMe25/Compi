@@ -216,18 +216,18 @@ def seccion_prototipo(parser, token, valor):
         # Finalización con punto y coma
         tipo, simbolo = parser.token_actual_tipo_valor()
         if tipo == "SIMBOLO" and simbolo == ";":
+            params_str = ', '.join([f"{p['tipo']} :: {p['nombre']}" for p in parametros])
             if tipo_retorno:
-                print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina}({', '.join([f'{p['tipo']} :: {p['nombre']}' for p in parametros])}) -> {tipo_retorno};\n")
+                print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina}({params_str}) -> {tipo_retorno};\n")
             else:
-                print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina}({', '.join([f'{p['tipo']} :: {p['nombre']}' for p in parametros])});\n")
-            info = {"parametros": parametros, "tipo_retorno": tipo_retorno}
+                print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina}({params_str});\n")
             from moduloParser.validaciones_semanticas import validar_nombre_unico_global
             validar_nombre_unico_global(parser.tabla, nombre_rutina)
             parser.tabla.agregar(nombre_rutina, tipo_rutina, clase="funcion", inicializado=True, info=info)
             parser.avanzar()
         else:
             print("Error: Se esperaba ';' al final del prototipo")
-            print(f"-----------------------------------------------------------------------")
+            print("-----------------------------------------------------------------------")
             parser.actualizar_token("ERROR", simbolo)
             return
     parser.tabla.mostrar()  # Mostrar tabla de símbolos al final de la sección

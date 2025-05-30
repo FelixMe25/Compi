@@ -55,7 +55,7 @@ class TablaSimbolos:
         return None
 
     def mostrar(self):
-        print(f"\n📘 TABLA DE SÍMBOLOS - Ámbito {'Global' if self.ambito == 0 else 'Local'}")
+        print(f"\n TABLA DE SÍMBOLOS - Ámbito {'Global' if self.ambito == 0 else 'Local'}")
         print("=" * 130)
         encabezado = ["Código", "Nombre", "Categoría", "Tipo", "NumParam", "ListaDeParam", "Dirección", "Ámbito", "Inicializado", "Info"]
         print(" | ".join(f"{h:<14}" for h in encabezado))

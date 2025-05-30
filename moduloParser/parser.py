@@ -219,9 +219,11 @@ class Parser:
         elif tipo == "OPERADOR_SALIDA" and valor.startswith("dropper"):
             procesar_salida_estandar(self)
         elif tipo == "OPERADOR_INCREMENTO" and valor == "soulsand":
-            _procesar_operaciones_enteros(self)
+            print("-------- IDENTIFICA OPERACION INCREMENTO ------------")
+            procesar_operacion_incremento(self)
         elif tipo == "OPERADOR_DECREMENTO" and valor == "magma":
-            _procesar_operaciones_enteros(self)
+            print("-------- IDENTIFICA OPERACION DECREMENTO ------------")
+            procesar_operacion_decremento(self)
         elif tipo == "IDENTIFICADOR":
             tipo_sig1, val_sig1 = self.tokens[self.current + 1] if self.current + 1 < len(self.tokens) else (None, None)
             tipo_sig2, val_sig2 = self.tokens[self.current + 2] if self.current + 2 < len(self.tokens) else (None, None)
@@ -245,8 +247,10 @@ class Parser:
         elif tipo == "OPERADOR_ENTRADA" and valor.startswith("hopper"):
             procesar_entrada_estandar(self)
         elif tipo == "OPERADOR_INCREMENTO":
+            print("-------- IDENTIFICA OPERACION INCREMENTO ------------")
             procesar_operacion_incremento(self)
         elif tipo == "OPERADOR_DECREMENTO":
+            print("-------- IDENTIFICA OPERACION DECREMENTO ------------")
             procesar_operacion_decremento(self)
         elif tipo == "OPERACION_WHILE" and valor == "repeater":
             procesar_repeater(self)

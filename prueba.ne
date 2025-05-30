@@ -1,20 +1,35 @@
-WorldName OperacionesEnteras:
+WorldName OperacionesEnterasSpider:
 
 Inventory
-    Stack a = 10;
-    Stack b = 4;
-    Stack suma, resta, multiplicacion, division, modulo;
+    Stack largoSaludo, indexBusqueda;
+
+    Spider saludo = "Hola", nombre = "Steve",completo;
+    Spider texto= "Hola Steve",palabra = "Steve",extraido,recortado;
+    Rune letra;
 
 SpawnPoint
-    suma = a + b;
-    resta = a - b;
-    multiplicacion = a * b;
-    division = a / b;
-    modulo = a % b;
+    $$ Concatenación válida
+    completo = saludo bind nombre;
 
-    dropperStack(suma);
-    dropperStack(resta);
-    dropperStack(multiplicacion);
-    dropperStack(division);
-    dropperStack(modulo);
+    $$ Longitud de Spider
+    largoSaludo = # saludo;
+
+    $$ Acceso por índice
+    letra = saludo[1];
+
+    $$ Búsqueda con seek
+    indexBusqueda = texto seek palabra;
+
+    $$ Corte con from
+    extraido = texto from 5 ## 5;
+
+    $$ Recorte con except
+    recortado = texto except 5 ## 5;
+
+    $$ ERROR: tipo destino incorrecto para seek
+    letra = texto seek palabra;
+
+    $$ ERROR: tipo incorrecto en bind
+    completo = saludo bind a;
 worldSave
+

@@ -1,19 +1,45 @@
 # ------------------------------------------------------------
 # Utilidades Generales
 # ------------------------------------------------------------
+def normalizar_tipo(tipo_raw):
+    equivalencias = {
+        "STRING": "Spider",
+        "ENTERO": "Stack",
+        "CARACTER": "Rune",
+        "FLOAT": "Ghast",
+        "BOOL": "Wither",
+        "FLOTANTE": "Ghast",
+        "STACK": "Stack",
+        "RUNE": "Rune",
+        "SPIDER": "Spider",
+        "GHAST": "Ghast"
+    }
+    if not tipo_raw:
+        return None
+    return equivalencias.get(tipo_raw.upper(), tipo_raw)
+
+
 def verificar_tipo_operando(tabla_simbolos, operando):
-    if isinstance(operando, int):  # Literal entero
+    if isinstance(operando, int):
         return "Stack"
-    elif isinstance(operando, float):  # Literal flotante
+    elif isinstance(operando, float):
         return "Ghast"
-    elif isinstance(operando, str):  # Variable
+    elif isinstance(operando, str) and (
+        (operando.startswith('"') and operando.endswith('"')) or 
+        (operando.startswith("'") and operando.endswith("'"))
+    ):
+        return "Spider"
+    elif isinstance(operando, str):  # Identificador
         simbolo = tabla_simbolos.obtener(operando, buscar_en_padre=True)
         if not simbolo:
             print(f"Error semántico: Variable '{operando}' no declarada.")
             return None
-        return simbolo["tipo"]
+        tipo_raw = simbolo.get("Tipo")
+        if not tipo_raw:
+            print(f"Error semántico: El símbolo '{operando}' no tiene campo 'Tipo'.")
+            return None
+        return normalizar_tipo(tipo_raw)
     return None
-
 
 #  ------------------------------- DECLARACIONES ----------------------------------------------------------------------
 
@@ -217,14 +243,16 @@ def validar_conversion_de_tipos(origen, destino):
 #-----------------------------------
 # VALIDACION INCREMENTO - DECREMENTO
 # --------------------------------
-def validar_operacion_incremento_decremento(tabla, nombre, operador):
+def validar_operacion_incremento_decremento(tabla, nombre, tipo_esperado):
     simbolo = tabla.obtener(nombre, buscar_en_padre=True)
     if not simbolo:
         print(f"Error semántico: Variable '{nombre}' no declarada.")
         return False
-    if simbolo["tipo"] != "Stack":
-        print(f"Error semántico: '{operador}' solo es válido para 'Stack'.")
+    if tipo_esperado != "Stack" or tipo_esperado != "Ghast":
+        print(f"Error semántico: '{nombre}' solo es válido para 'Stack' or 'Ghast'.")
         return False
+
+    print(f"Operación de Incremento - Decremento válida sobre variable '{nombre}'.")
     return True
 
 # -----------------------------------
@@ -255,7 +283,7 @@ def validar_operacion_entera(tabla, destino, op, izq, der):
 # -------------------------------------
 def validar_operacion_flotante(tabla, destino, op, izq, der):
     simbolo = tabla.obtener(destino, buscar_en_padre=True)
-    if not simbolo or simbolo["tipo"] != "Ghast":
+    if not simbolo or normalizar_tipo(simbolo.get("Tipo")) != "Ghast":
         print(f"Error: Variable de destino '{destino}' debe ser 'Ghast'.")
         return False
     tipo_izq = verificar_tipo_operando(tabla, izq)
@@ -286,8 +314,113 @@ def validar_operacion_caracter(tabla, destino, operador, operando):
 # VALIDACION DE OPERACIONES STRING
 # -------------------------------------
 
-# [FALTA IMPLEMENTARLO] 
+# -----------------------------------
+# ACCESO A STRING
+# -------------------------------------
+def validar_acceso_spider(tabla_simbolos, spider_nombre, indice, destino):
+    spider = tabla_simbolos.obtener(spider_nombre, buscar_en_padre=True)
+    if not spider or normalizar_tipo(spider.get("Tipo"))  != "Spider":
+        print(f"Error semántico: '{spider_nombre}' debe ser de tipo 'Spider'.")
+        return False
 
+    tipo_indice = verificar_tipo_operando(tabla_simbolos, indice)
+    if tipo_indice != "Stack":
+        print(f"Error semántico: El índice debe ser de tipo 'Stack', no '{tipo_indice}'.")
+        return False
+
+    simbolo_destino = tabla_simbolos.obtener(destino, buscar_en_padre=True)
+    if not simbolo_destino or  normalizar_tipo(simbolo_destino.get("Tipo")) != "Rune":
+        print(f"Error semántico: El resultado del acceso debe asignarse a una variable de tipo 'Rune'.")
+        return False
+
+    print(f"✔ Acceso Spider válido: {spider_nombre}[{indice}] → {destino}")
+    return True
+
+#-----------------
+# CONCATENAR
+# ------------------
+def validar_concatenacion_spider(tabla_simbolos, destino, spider1, spider2):
+    for spider in [spider1, spider2]:
+        tipo = verificar_tipo_operando(tabla_simbolos, spider)
+        if tipo != "Spider":
+            print(f"Error semántico: '{spider}' debe ser de tipo 'Spider'.")
+            return False
+
+    simbolo_destino = tabla_simbolos.obtener(destino, buscar_en_padre=True)
+    if not simbolo_destino or normalizar_tipo(simbolo_destino.get("Tipo")) != "Spider":
+        print(f"Error semántico: El resultado de 'bind' debe asignarse a una variable 'Spider'.")
+        return False
+
+    print(f"✔ Concatenación Spider válida: {spider1} bind {spider2} → {destino}")
+    return True
+
+#-----------------
+# LENGTH
+# ------------------
+def validar_longitud_spider(tabla_simbolos, spider, destino):
+    simbolo_spider = tabla_simbolos.obtener(spider, buscar_en_padre=True)
+    if not simbolo_spider or normalizar_tipo(simbolo_spider.get("Tipo")) != "Spider":
+        print(f"Error semántico: '{spider}' debe ser de tipo 'Spider'.")
+        return False
+
+    simbolo_destino = tabla_simbolos.obtener(destino, buscar_en_padre=True)
+    if not simbolo_destino or normalizar_tipo(simbolo_destino.get("Tipo")) != "Stack":
+        print(f"Error semántico: El resultado de '#' debe almacenarse en una variable 'Stack'.")
+        return False
+
+    print(f"✔ Longitud Spider válida: # {spider} → {destino}")
+    return True
+
+#-----------------
+# CORTAR
+# ------------------
+def validar_corte_spider(tabla_simbolos, destino, spider, inicio, cantidad):
+    if verificar_tipo_operando(tabla_simbolos, spider) != "Spider":
+        print(f"Error semántico: '{spider}' debe ser tipo 'Spider'.")
+        return False
+    if verificar_tipo_operando(tabla_simbolos, inicio) != "Stack" or verificar_tipo_operando(tabla_simbolos, cantidad) != "Stack":
+        print(f"Error semántico: Los índices 'from' y '##' deben ser de tipo 'Stack'.")
+        return False
+    if verificar_tipo_operando(tabla_simbolos, destino) != "Spider":
+        print(f"Error semántico: El resultado del 'from ##' debe asignarse a una variable 'Spider'.")
+        return False
+
+    print(f"✔ Corte Spider válido: {spider} from {inicio} ## {cantidad} → {destino}")
+    return True
+
+#-----------------
+# RECORTAR 
+# ------------------
+def validar_recorte_spider(tabla_simbolos, destino, spider, inicio, cantidad):
+    if verificar_tipo_operando(tabla_simbolos, spider) != "Spider":
+        print(f"Error semántico: '{spider}' debe ser tipo 'Spider'.")
+        return False
+    if verificar_tipo_operando(tabla_simbolos, inicio) != "Stack" or verificar_tipo_operando(tabla_simbolos, cantidad) != "Stack":
+        print(f"Error semántico: Los índices 'except ##' deben ser de tipo 'Stack'.")
+        return False
+    if verificar_tipo_operando(tabla_simbolos, destino) != "Spider":
+        print(f"Error semántico: El resultado del 'except ##' debe asignarse a una variable 'Spider'.")
+        return False
+
+    print(f"✔ Recorte Spider válido: {spider} except {inicio} ## {cantidad} → {destino}")
+    return True
+
+#-----------------
+# BUSCAR
+# ------------------
+def validar_seek_spider(tabla_simbolos, destino, spider_base, spider_sub):
+    if verificar_tipo_operando(tabla_simbolos, spider_base) != "Spider":
+        print(f"Error semántico: '{spider_base}' debe ser tipo 'Spider'.")
+        return False
+    if verificar_tipo_operando(tabla_simbolos, spider_sub) != "Spider":
+        print(f"Error semántico: El valor buscado '{spider_sub}' debe ser tipo 'Spider'.")
+        return False
+    if verificar_tipo_operando(tabla_simbolos, destino) != "Stack":
+        print(f"Error semántico: El resultado de 'seek' debe asignarse a una variable 'Stack'.")
+        return False
+
+    print(f"✔ Búsqueda Spider válida: {spider_base} seek {spider_sub} → {destino}")
+    return True
 
 # -----------------------------------
 # VALIDACION DE OPERACIONES LOGICAS
@@ -339,8 +472,3 @@ def validar_acceso_shelf_por_indice(tabla_simbolos, nombre, indice):
         return False
     return True
 
-# -----------------------------------
-# VALIDACION DE ACCESO A STRING
-# -------------------------------------
-
-#[FALTA IMPLEMENTARLO]
