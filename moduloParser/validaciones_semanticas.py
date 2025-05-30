@@ -123,9 +123,35 @@ def validar_asignacion(tabla, nombre, valor):
         print(f"Error: Variable '{nombre}' no declarada.")
         return False
     tipo_valor = verificar_tipo_operando(tabla, valor)
+    # Permitir asignación de literal de registro a Entity
+    if simbolo["tipo"] in ["Entity", "REGISTROS"]:
+        if isinstance(valor, str) and (valor.startswith("{") or valor.startswith("{/")):
+            simbolo["inicializado"] = True
+            simbolo["info"]["valor_inicializacion"] = valor
+            print(f"---- Entity '{nombre}' inicializada correctamente.")
+            # Desglosar y asignar a los campos individuales si existen
+            # Quitar llaves y espacios, luego separar por comas
+            campos = valor.strip("{} ").split(",")
+            nombres_campos = ["name", "material", "durability", "isEnchanted"]
+            for i, campo in enumerate(campos):
+                if i >= len(nombres_campos):
+                    break
+                nombre_campo = nombres_campos[i].strip()
+                valor_campo = campo.strip().strip('"')
+                if tabla.existe(nombre_campo):
+                    simbolo_campo = tabla.obtener(nombre_campo)
+                    simbolo_campo["inicializado"] = True
+                    simbolo_campo["info"]["valor_inicializacion"] = valor_campo
+            return True
+        else:
+            print(f"Error: Asignación inválida para Entity '{nombre}'.")
+            return False
     if tipo_valor != simbolo["tipo"]:
         print(f"Error: Tipo de valor '{tipo_valor}' no coincide con '{simbolo['tipo']}'.")
         return False
+    simbolo["inicializado"] = True
+    simbolo["info"]["valor_inicializacion"] = valor
+    print(f"---- Variable '{nombre}' inicializada correctamente.")
     return True
 
 #-----------------------------------
@@ -206,15 +232,23 @@ def validar_operacion_incremento_decremento(tabla, nombre, operador):
 # -------------------------------------
 def validar_operacion_entera(tabla, destino, op, izq, der):
     simbolo = tabla.obtener(destino, buscar_en_padre=True)
-    if not simbolo or simbolo["tipo"] != "Stack":
+    if not simbolo:
+        print(f"Error: Variable '{destino}' no ha sido declarada previamente.")
+        return False
+
+    if simbolo["Tipo"] != "Stack":
         print(f"Error: Variable de destino '{destino}' debe ser 'Stack'.")
         return False
+
     tipo_izq = verificar_tipo_operando(tabla, izq)
     tipo_der = verificar_tipo_operando(tabla, der)
+
     if tipo_izq != "Stack" or tipo_der != "Stack":
         print(f"Error: Operandos de '{op}' deben ser 'Stack'.")
         return False
+
     return True
+
 
 # -----------------------------------
 # VALIDACION DE OPERACIONES FLOTANTES

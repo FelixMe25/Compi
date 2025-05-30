@@ -469,9 +469,10 @@ def procesar_entity(parser):
         return
     parser.avanzar()  # Saltar 'Entity'
     campos = []
+    tabla_simbolos = parser.tabla
     while not parser.fin():
         tipo, valor = parser.token_actual_tipo_valor()
-        print(f"DEBUG TOKEN EN ENTITY: {tipo}, {valor}")  # <--- Agrega esto
+        print(f"DEBUG TOKEN EN ENTITY: {tipo}, {valor}")
         if tipo == "FIN_ENTITY":
             parser.avanzar()
             break
@@ -481,6 +482,9 @@ def procesar_entity(parser):
             if tipo == "IDENTIFICADOR":
                 campos.append(("Spider", nombre_campo))
                 print(f"  Campo: Spider {nombre_campo}")
+                # Registrar campo en la tabla de símbolos
+                from moduloParser.validaciones_semanticas import validar_declaracion_variable
+                validar_declaracion_variable(tabla_simbolos, nombre_campo, "STRING", False, None)
                 parser.avanzar()
                 tipo, sep = parser.token_actual_tipo_valor()
                 if tipo == "SIMBOLO" and sep == ";":
@@ -502,6 +506,8 @@ def procesar_entity(parser):
             if tipo == "IDENTIFICADOR":
                 campos.append(("Stack", nombre_campo))
                 print(f"  Campo: Stack {nombre_campo}")
+                from moduloParser.validaciones_semanticas import validar_declaracion_variable
+                validar_declaracion_variable(tabla_simbolos, nombre_campo, "ENTERO", False, None)
                 parser.avanzar()
                 tipo, sep = parser.token_actual_tipo_valor()
                 if tipo == "SIMBOLO" and sep == ";":
@@ -523,6 +529,8 @@ def procesar_entity(parser):
             if tipo == "IDENTIFICADOR":
                 campos.append(("Torch", nombre_campo))
                 print(f"  Campo: Torch {nombre_campo}")
+                from moduloParser.validaciones_semanticas import validar_declaracion_variable
+                validar_declaracion_variable(tabla_simbolos, nombre_campo, "BOOL", False, None)
                 parser.avanzar()
                 tipo, sep = parser.token_actual_tipo_valor()
                 if tipo == "SIMBOLO" and sep == ";":
@@ -543,27 +551,28 @@ def procesar_entity(parser):
             parser.actualizar_token("ERROR", valor)
             parser.saltar_hasta_puntoycoma()
             continue
-  # Ahora procesar la variable del registro
+    # Ahora procesar la variable del registro
     tipo, nombre_var = parser.token_actual_tipo_valor()
     if tipo != "IDENTIFICADOR":
         print("Error: Se esperaba identificador de variable tras kill")
         parser.actualizar_token("ERROR", nombre_var)
-        parser.avanzar()
+        parser.avanzar()  # Saltar el token erróneo y continuar
         return
     parser.avanzar()
-
     tipo, simbolo = parser.token_actual_tipo_valor()
+    es_inicializado = False
+    valor_inicializacion = None
     if tipo == "OPERADOR" and simbolo == "=":
         parser.avanzar()
         tipo, valor = parser.token_actual_tipo_valor()
         if tipo == "LITERAL_REGISTRO":
             print(f"  Inicialización: {nombre_var} = {valor}")
+            es_inicializado = True
+            valor_inicializacion = valor
             parser.avanzar()
             tipo, fin = parser.token_actual_tipo_valor()
             if tipo == "SIMBOLO" and fin == ";":
-                print(f"  Declaración finalizada: Entity {nombre_var} = {valor}")
                 parser.avanzar()
-                validar_declaracion_entity(parser.tabla, nombre_var, inicializado=True, valor_inicializacion=valor)
             else:
                 print("Error: Se esperaba ';' tras la inicialización de Entity")
                 parser.actualizar_token("ERROR", fin)
@@ -575,15 +584,10 @@ def procesar_entity(parser):
     elif tipo == "SIMBOLO" and simbolo == ";":
         print(f"  Declaración finalizada: Entity {nombre_var} (sin inicialización)")
         parser.avanzar()
-        validar_declaracion_entity(parser.tabla, nombre_var, inicializado=False)
     else:
         print("Error: Se esperaba '=' o ';' tras el nombre de variable Entity")
         parser.actualizar_token("ERROR", simbolo)
         parser.saltar_hasta_puntoycoma()
-
-
-
-
-def procesar_dato_entity(parser):
-    # Alias para compatibilidad
-    procesar_entity(parser)
+    # Registrar la variable Entity en la tabla de símbolos
+    from moduloParser.validaciones_semanticas import validar_declaracion_variable
+    validar_declaracion_variable(tabla_simbolos, nombre_var, "REGISTROS", es_inicializado, valor_inicializacion)

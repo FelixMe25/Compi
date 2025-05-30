@@ -2,24 +2,39 @@
 #                MANEJO DE BLOQUES DE MAS DE UNA INSTRUCCION
 #----------------------------------------------------------------------------
 def manejo_bloque(parser, tipo, valor):
-        print(f"-----------------------------------------------------------------------")
-        print(f"---- Bloque de màs de una instrucciòn: {valor}")
-        parser.bandera_bloque += 1
-        parser.avanzar()
-        while not parser.fin():
-            tipo_actual, valor_actual = parser.token_actual_tipo_valor()
-            if tipo_actual == "FIN_BLOQUE" and valor_actual == "PolloAsado":
-                print(f"Fin del bloque detectado con: {valor_actual}")
-                print(f"-----------------------------------------------------------------------")
-                parser.bandera_bloque -= 1
-                parser.avanzar()
-                return
+    print(f"-----------------------------------------------------------------------")
+    print(f"---- Bloque de màs de una instrucciòn: {valor}")
+    parser.bandera_bloque += 1
+    parser.avanzar()
+    while not parser.fin():
+        tipo_actual, valor_actual = parser.token_actual_tipo_valor()
+        if tipo_actual == "FIN_BLOQUE" and valor_actual == "PolloAsado":
+            print(f"Fin del bloque detectado con: {valor_actual}")
+            print(f"-----------------------------------------------------------------------")
+            parser.bandera_bloque -= 1
+            parser.avanzar()
+            return
 
-            if tipo_actual == "MAS_DE_UNA_INSTRUCCION" and valor_actual == "PolloCrudo":
-                print("----- Bloque anidado encontrado dentro de otro bloque (Pollo crudo).")
-                manejo_bloque(parser, tipo_actual, valor_actual)
-                continue
-            parser.parse_instruccion_actual()
+        if tipo_actual == "MAS_DE_UNA_INSTRUCCION" and valor_actual == "PolloCrudo":
+            print("----- Bloque anidado encontrado dentro de otro bloque (Pollo crudo).")
+            manejo_bloque(parser, tipo_actual, valor_actual)
+            continue
+        # Soporte para instrucción de retorno 'respawn'
+        if tipo_actual in ["RETURN_FUNC", "OPERACION_RETURN"]:
+            parser.avanzar()
+            tipo_valor, valor_retorno = parser.token_actual_tipo_valor()
+            # Aquí podrías validar el tipo de retorno según el Spell actual
+            print(f"---- Instrucción de retorno detectada: respawn {valor_retorno}")
+            parser.avanzar()
+            tipo_pyc, pyc = parser.token_actual_tipo_valor()
+            if tipo_pyc == "SIMBOLO" and pyc == ";":
+                parser.avanzar()
+            else:
+                print("Error: Se esperaba ';' después de respawn")
+                parser.actualizar_token("ERROR", pyc)
+                parser.saltar_hasta_puntoycoma()
+            continue
+        parser.parse_instruccion_actual()
 
 # ------------------------------------------------------------------------------
 # OPERACIONES DE REPETAER 

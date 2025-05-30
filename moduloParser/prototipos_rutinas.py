@@ -130,125 +130,104 @@ def procesar_funcion_o_procedimiento(parser):
 #   - Ritual calculateValue (Stack :: diamonds) -> cobblestone;
 #----------------------------------------------------------------------------
 def seccion_prototipo(parser, token, valor):
-        print(f"---- Sección de prototipos detectada: {valor}")
+    print(f"---- Sección de prototipos detectada: {valor}")
+    parser.avanzar()
+
+    while not parser.fin():
+        tipo, valor = parser.token_actual_tipo_valor()
+        if tipo not in ("ENCABEZADO_FUNCIONES", "ENCABEZADO_PROCEDIMIENTOS"):
+            break
+        tipo_rutina = valor  # Spell o Ritual
         parser.avanzar()
-
-        while not parser.fin():
-            tipo, valor = parser.token_actual_tipo_valor()
-
-            if tipo not in ("ENCABEZADO_FUNCIONES", "ENCABEZADO_PROCEDIMIENTOS"):
-                break
-
-            tipo_rutina = valor  # Spell o Ritual
+        # Nombre del prototipo
+        tipo, nombre_rutina = parser.token_actual_tipo_valor()
+        if tipo != "IDENTIFICADOR":
+            print(f"Error: Se esperaba el nombre del prototipo después de '{tipo_rutina}'")
+            print(f"-----------------------------------------------------------------------")
+            parser.actualizar_token("ERROR", nombre_rutina)
+            return
+        parser.avanzar()
+        # Paréntesis de apertura
+        tipo, simbolo = parser.token_actual_tipo_valor()
+        if tipo != "SIMBOLO" or simbolo != "(":
+            print("Error: Se esperaba '(' antes de los parámetros")
+            print(f"-----------------------------------------------------------------------")
+            parser.actualizar_token("ERROR", simbolo)
+            return
+        parser.avanzar()
+        # Leer parámetros (cero o más)
+        parametros = []
+        tipo, simbolo = parser.token_actual_tipo_valor()
+        if tipo == "SIMBOLO" and simbolo == ")":
             parser.avanzar()
-
-            # Nombre del prototipo
-            tipo, nombre_rutina = parser.token_actual_tipo_valor()
-            if tipo != "IDENTIFICADOR":
-                print(f"Error: Se esperaba el nombre del prototipo después de '{tipo_rutina}'")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", nombre_rutina)
-                return
-            parser.avanzar()
-
-            # Paréntesis de apertura
-            tipo, simbolo = parser.token_actual_tipo_valor()
-            if tipo != "SIMBOLO" or simbolo != "(":
-                print("Error: Se esperaba '(' antes de los parámetros")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", simbolo)
-                return
-            parser.avanzar()
-
-            # Tipo del parámetro
-            tipo, tipo_param = parser.token_actual_tipo_valor()
-            if not tipo.startswith("TIPO_") and tipo not in parser.tipos_personalizados:
-                print(f" Error: Tipo de parámetro inválido: {tipo_param}")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", tipo_param)
-                return
-            parser.avanzar()
-
-            # Separador '::'
-            tipo, simbolo = parser.token_actual_tipo_valor()
-            if tipo != "SIMBOLO" or simbolo != "::":
-                print("Error: Se esperaba '::' entre tipo y nombre del parámetro")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", simbolo)
-                return
-            parser.avanzar()
-
-            # Nombre del parámetro
-            tipo, nombre_param = parser.token_actual_tipo_valor()
-            if tipo != "IDENTIFICADOR":
-                print("Error: Se esperaba un identificador como nombre del parámetro")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", nombre_param)
-                return
-            parser.avanzar()
-
-            # Paréntesis de cierre
-            tipo, simbolo = parser.token_actual_tipo_valor()
-            if tipo != "SIMBOLO" or simbolo != ")":
-                print("Error: Se esperaba ')' al final de los parámetros")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", simbolo)
-                return
-            parser.avanzar()
-
-            # Si es una función (Spell), debe terminar con ;
-            if tipo_rutina == "Spell":
-                tipo, simbolo = parser.token_actual_tipo_valor()
-                if tipo == "SIMBOLO" and simbolo == ";":
-                    print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina} ({tipo_param} :: {nombre_param});\n")
-                    parametros = [{"nombre": nombre_param, "tipo": tipo_param}]
-                    # Para Spell, tipo_retorno es None
-                    info = {"parametros": parametros, "tipo_retorno": None}
-                    validar_nombre_unico_global(parser.tabla, nombre_rutina)
-                    parser.tabla.agregar(nombre_rutina, tipo_rutina, clase="funcion", inicializado=True, info=info)
-                    parser.avanzar()
-                else:
-                    print(" Error: Se esperaba ';' al final del prototipo de función")
+        else:
+            while not parser.fin():
+                tipo, tipo_param = parser.token_actual_tipo_valor()
+                if not tipo.startswith("TIPO_") and tipo_param not in parser.tipos_personalizados:
+                    print(f" Error: Tipo de parámetro inválido: {tipo_param}")
                     print(f"-----------------------------------------------------------------------")
-                    parser.actualizar_token("ERROR", simbolo)
+                    parser.actualizar_token("ERROR", tipo_param)
                     return
-
-            # Si es un procedimiento (Ritual), debe tener -> tipo y luego ;
-            elif tipo_rutina == "Ritual":
+                parser.avanzar()
                 tipo, simbolo = parser.token_actual_tipo_valor()
-                if tipo != "FLECHA" or simbolo != "->":
-                    print("Error: Se esperaba '->' después del paréntesis en Ritual")
+                if tipo != "SIMBOLO" or simbolo != "::":
+                    print("Error: Se esperaba '::' entre tipo y nombre del parámetro")
                     print(f"-----------------------------------------------------------------------")
                     parser.actualizar_token("ERROR", simbolo)
                     return
                 parser.avanzar()
-
-                tipo, tipo_retorno = parser.token_actual_tipo_valor()
-                # Traducir tipo personalizado a tipo base si existe
-                tipo_retorno_base = parser.tipos_personalizados.get(tipo_retorno, tipo_retorno)
-                if not tipo.startswith("TIPO_") and tipo_retorno not in parser.tipos_personalizados:
-                    print(f"Error: Tipo de retorno inválido: {tipo_retorno}")
+                tipo, nombre_param = parser.token_actual_tipo_valor()
+                if tipo != "IDENTIFICADOR":
+                    print("Error: Se esperaba un identificador como nombre del parámetro")
                     print(f"-----------------------------------------------------------------------")
-                    parser.actualizar_token("ERROR", tipo_retorno)
+                    parser.actualizar_token("ERROR", nombre_param)
                     return
+                parametros.append({"nombre": nombre_param, "tipo": tipo_param})
                 parser.avanzar()
-
                 tipo, simbolo = parser.token_actual_tipo_valor()
-                if tipo == "SIMBOLO" and simbolo == ";":
-                    print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina} ({tipo_param} :: {nombre_param}) -> {tipo_retorno};\n")
-                    parametros = [{"nombre": nombre_param, "tipo": tipo_param}]
-                    info = {"parametros": parametros, "tipo_retorno": tipo_retorno_base}
-                    from moduloParser.validaciones_semanticas import validar_nombre_unico_global
-                    validar_nombre_unico_global(parser.tabla, nombre_rutina)
-                    parser.tabla.agregar(nombre_rutina, tipo_rutina, clase="funcion", inicializado=True, info=info)
+                if tipo == "SIMBOLO" and simbolo == ",":
                     parser.avanzar()
+                    continue
+                elif tipo == "SIMBOLO" and simbolo == ")":
+                    parser.avanzar()
+                    break
                 else:
-                    print("Error: Se esperaba ';' al final del prototipo de procedimiento")
+                    print("Error: Se esperaba ',' o ')' después del parámetro")
                     print(f"-----------------------------------------------------------------------")
                     parser.actualizar_token("ERROR", simbolo)
                     return
+        # Tipo de retorno (opcional en Spell, obligatorio en Ritual)
+        tipo, simbolo = parser.token_actual_tipo_valor()
+        tipo_retorno = None
+        if tipo == "FLECHA" and simbolo == "->":
+            parser.avanzar()
+            tipo, tipo_retorno = parser.token_actual_tipo_valor()
+            if not tipo.startswith("TIPO_") and tipo_retorno not in parser.tipos_personalizados:
+                print(f"Error: Tipo de retorno inválido: {tipo_retorno}")
+                print(f"-----------------------------------------------------------------------")
+                parser.actualizar_token("ERROR", tipo_retorno)
+                return
+            parser.avanzar()
+        elif tipo_rutina == "Ritual":
+            print("Error: Ritual debe tener tipo de retorno con '->'")
+            print(f"-----------------------------------------------------------------------")
+            parser.actualizar_token("ERROR", simbolo)
+            return
+        # Finalización con punto y coma
+        tipo, simbolo = parser.token_actual_tipo_valor()
+        if tipo == "SIMBOLO" and simbolo == ";":
+            if tipo_retorno:
+                print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina}({', '.join([f'{p['tipo']} :: {p['nombre']}' for p in parametros])}) -> {tipo_retorno};\n")
             else:
-                print(" Error: Tipo de encabezado desconocido")
-                print(f"-----------------------------------------------------------------------")
-                parser.actualizar_token("ERROR", tipo_rutina)
-                return
+                print(f"---- Prototipo válido: {tipo_rutina} {nombre_rutina}({', '.join([f'{p['tipo']} :: {p['nombre']}' for p in parametros])});\n")
+            info = {"parametros": parametros, "tipo_retorno": tipo_retorno}
+            from moduloParser.validaciones_semanticas import validar_nombre_unico_global
+            validar_nombre_unico_global(parser.tabla, nombre_rutina)
+            parser.tabla.agregar(nombre_rutina, tipo_rutina, clase="funcion", inicializado=True, info=info)
+            parser.avanzar()
+        else:
+            print("Error: Se esperaba ';' al final del prototipo")
+            print(f"-----------------------------------------------------------------------")
+            parser.actualizar_token("ERROR", simbolo)
+            return
+    parser.tabla.mostrar()  # Mostrar tabla de símbolos al final de la sección
